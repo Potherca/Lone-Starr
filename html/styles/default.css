@@ -1,0 +1,334 @@
+/********( CSS Index )*********************************************************/
+/*
+	0. CSS Introduction
+	1. General Reset
+
+	2.Base Elements
+
+    3. ?
+
+    4. Detail Form
+        4.1. Base Elements
+        4.2. Specific Fields
+        4.3. Helper Classes
+        4.4. Overrides for JQuery UI AutoComplete
+	EOF
+*/
+/********( CSS Introduction )**************************************************/
+/*
+    As you may have noticed I like my style sheets ordered and well documented.
+    If you consider this verboseness a bad thing, just use your favorite CSS
+    Minifier and shut the fuck up, mmmmkay? Also, as this is a side project,
+    you might encounter me swearing in here. It's not that I think it's cool,
+    its just what happens when it's 3 at night and  I've had a couple of beers.
+    And, honestly, I really can't be arsed to clean it up when I'm sober because
+    if I'm going to clean my own mess up, it _better_ be in the code. Fuck the
+    comments! this might be a good place to point out I already suggested the
+    use of a Minifier and the STFU routine. Moving on...
+
+    One important thing to note is that I tend to give either (or both) the html
+    and body tags in the HTML an ID attribute to get around certain issues in
+    regards to CSS specificity and styling done by external libraries. If you
+    don't know what "CSS specificity" is, look it up! You _need_ to know this
+    shit!
+*/
+/********( General Reset )*************************************************************/
+    /*Being specific is a lot less expensive than targeting everything using a star "*" */
+    a, abbr, acronym, address, applet, article, aside, audio, b, big, blockquote,
+    body, button, canvas, caption, center, cite, code, dd, del, details, dfn, div,
+    dl, dt, em, embed, fieldset, figcaption, figure, font, footer, form, h1, h2,
+    h3, h4, h5, h6, header, hgroup, html, i, iframe, img, input, ins, kbd, label,
+    legend, li, mark, menu, nav, object, ol, optgroup, option, output, p, pre, q,
+    ruby, s, samp, section, select, small, span, strike, strong, sub, summary,
+    sup, table, tbody, td, textarea, tfoot, th, thead, time, tr, tt, u, ul, var,
+    video
+    {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        font-size: 100%;
+        vertical-align: baseline;
+        background: transparent;
+        /*font-family: 'Walter Turncoat', sans-serif;  /*Webfont FTW or GTFO!*/
+        font-family: sans-serif;
+        font-size: 1em;
+    }
+/********( Base Elements )*****************************************************/
+    body {
+        background-color: #EEE;
+        width: 65em;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    section {
+        background-color: #FFF;
+        border: 1px solid black;
+        border-radius: 1em;
+        float: left;
+        height: 90%;
+        margin: 1em;
+        min-height: 25em;
+        overflow: auto;
+    }
+
+    ul {
+        list-style-position: inside;
+        margin-left: 1em;
+    }
+
+    option:before {
+        content: "--";
+    }
+    optgroup {
+        margin-left: 1em;
+    }
+/********( ? )*****************************************************************/
+    #overview {
+        font-size: 80%;
+        line-height: 0.8em;
+        padding: 1em 0 1em 1em;
+        width: 18em;
+    }
+
+    #detail {
+        width: 40em;
+    }
+
+    #create-new-item-form {
+        display: inline;
+        height: 1em;
+        position: relative;
+    }
+
+    #document-list ul {
+        /*margin-left: 0;*/
+    }
+/********( Detail Form )*******************************************************/
+form {
+    position: relative;
+}
+    /********( Base Elements )*************************************************/
+    fieldset {
+        width: 49%;
+        float: left;
+        position: relative;
+        height: 99%;
+        border: none;
+    }
+
+    form input
+    , form textarea
+    , form select
+    , form p
+    , form button
+    {
+        border-radius: 1em;
+        font-size: 80%;
+        margin: 0.5em 0 0.5em 3%;
+        outline: none;
+        padding-left: 0.4em;
+        width: 94%;
+
+        border: 2px solid;
+        border-color: gray lightgray lightgray gray;
+    }
+
+    form button {
+        border-color: lightgray gray gray lightgray;
+        position: relative;
+        background-color: #aaa;
+    }
+
+    form button:hover {
+        background-color: #CCC;
+    }
+
+    form button:active{
+        border-bottom-width: 1px;
+        border-right-width: 1px;
+        top: 1px;
+        left: 1px;
+    }
+
+    form :focus {
+        border-color: blue lightblue lightblue blue;
+    }
+
+    ::-webkit-input-placeholder	{
+        color: #666;
+    }
+
+    :-moz-placeholder {
+        color: #666;
+    }
+
+    /********( Specific Fields )***********************************************/
+    label input[type="radio"] {
+        width: 1em;
+        height: 1em;
+    }
+
+    form [name="main-text"] {
+        height: 40%;
+    }
+
+    form [name="motivation"] {
+        height: 20%;
+    }
+
+    form [disabled] {
+        background-color: transparent;
+        border: none;
+    }
+
+    form button[disabled] {
+        background-color: #CCC;
+        border: 2px solid #CCC;
+    }
+
+    #body button[name="create-new-child"] {
+        white-space: nowrap;
+        min-width: 22.5%;
+        width: auto;
+    }
+    /********( Helper Classes )************************************************/
+    form .medium {
+        width: 67.5%;
+    }
+
+    form .small {
+        width: 45%;
+    }
+
+    form .tiny {
+        width: 22.5%;
+    }
+
+    #body .ui-datepicker {
+        font-size: 80%;
+    }
+
+    .required {
+        border-color: #A00 #A88 #A88 #A00;
+    }
+
+.todo {
+    background-color: #FEE;
+}
+
+.note {
+    background-color: #EFE;
+}
+
+
+    /********( Overrides for JQuery UI Stylesheet )****************************/
+        /********( Overrides for JQuery UI Autocomplete )**********************/
+        #body .ui-state-hover {
+            background: #EE0;
+        }
+
+        #body .ui-autocomplete {
+            /*font-size: 80%;*/
+        }
+
+        #body .ui-autocomplete-category {
+            border-top: 2px solid black;
+            border-bottom: 1px solid darkGray;
+            clear: left;
+            color: #777;
+            float: left;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+        }
+
+        /********( Overrides for JQuery UI Accordion )*************************/
+        #body .ui-accordion {
+            margin: -2px -2px -2px 0;
+            border: none;
+        }
+
+        #body .ui-accordion a {
+            padding-left: 5%;
+            width: 95%;
+        }
+
+        #body .ui-accordion .ui-accordion-header,
+        #body .ui-accordion .ui-accordion-content {
+            /*line-height: 0.8em;*/
+            /*font-size: 0.8em;*/
+        }
+
+        #body .ui-accordion .ui-accordion-header {
+            padding: 0.35em 0em;
+            display: block;
+            text-indent: 1.5em;
+        }
+
+
+        #body .ui-accordion .ui-accordion-content {
+            padding: 0;
+        }
+
+        #body .ui-accordion .ui-accordion-header .ui-icon {
+            left: 0;
+        }
+
+        .ui-accordion .no-children .ui-accordion-header .ui-icon {
+            display: none;
+        }
+
+        /********( Overrides for JQuery UI SelectMenu )************************/
+        #body .ui-selectmenu-menu ul {
+            border-left: 1em solid red;
+        }
+        #body .ui-selectmenu-menu ul ul {
+            border-left-color: blue;
+        }
+
+/********( EOF )***************************************************************/
+
+#create-new-item-form button code {
+    border: 1px solid black;
+    padding: 0.5em;
+    margin: 0.2em;
+    background-color: white;
+}
+
+#debug {
+    border: 1px solid black;
+    position: absolute;
+    right: -10%;
+    top: 1em;
+    background: rgba(255,255,255,0.8);
+    opacity: 0.7;
+    border-radius: 1em;
+    padding: 0.3em;
+    font-size: 0.8em;
+}
+
+#debug.fail{
+    background: rgba(255,180,180,0.8);
+    border-color: #F00;
+}
+
+#debug.success{
+    background: rgba(180,255,180,0.8);
+    border-color: #0F0;
+}
+
+#debug ul {
+    display: none;
+}
+
+#debug:hover ul {
+    display: block;
+    font-weight: bold;
+    font-family: sans-serif;
+}
+
+#debug:hover ul code {
+    font-family: monospace;
+}

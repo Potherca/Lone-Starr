@@ -1,0 +1,53 @@
+<!DOCTYPE HTML>
+
+<head>
+    <title>Todo List</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta charset="UTF-8" />
+
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+
+    <link rel="stylesheet" href="styles/WalterTurncoat.css" />
+    <link rel="stylesheet" href="styles/base/jquery-ui.min.css" />
+    <link rel="stylesheet" href="styles/default.css" />
+
+    <script src="scripts/jquery-1.6.1.min.js"></script>
+    <script src="scripts/jquery-ui-1.8.13.custom.min.js"></script>
+    <script src="scripts/couch.js"></script>
+    <script src="scripts/todo-app.js"></script>
+</head>
+
+<body id="body">
+
+    <form id="create-new-item-form" method="get" action="forms.html">
+        <button type="submit" class="tiny" name="create-new-item" value="true">Create New Item</button>
+        <button type="submit" class="tiny" name="create-new-child" value="true" disabled="disabled">Create Sub- Item</button>
+    </form>
+
+    <section id="overview">
+        <ul>
+            <li>Tags might have to differ between todo & notes?</li>
+            <li><a href="https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format">Suggested format</a> for <a href="http://todotxt.com/">Todo.txt
+</a> = +project @context (A) priority </li>
+        </ul>
+
+    </section>
+
+    <section id="detail"></section>
+
+<div id="debug"
+        onclick="
+            var sAnswer = window.prompt('What would you like to debug?\n\n Leave empty or Cancel to stop any running debugger');
+            if(sAnswer){
+                window.oTodo.debugMe = sAnswer;
+                window.oTodo.debugId = setInterval(window.oTodo._debug, 1000);
+            }else{
+                clearInterval(window.oTodo.debugId);
+                this.innerHTML='Debug';
+                this.className='';
+            }
+        "
+    >Debug</div>
+
+</body>
