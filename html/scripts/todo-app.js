@@ -1,44 +1,45 @@
 /*
 @MAJOR_TODOS:
      NOW WORKING ON:
-        - radio buttons value is not saved
-
+        CSS: Menu sub-item indentation (or similar visual cue)
+        --- nothing ---
 
     BUGS/YET TO BE DONE:
-
-        !!! THIS LIST NEEDS TO BE ORDERED BY IMPORTANCE AND PRIORITY !!!
-
-            - USABILITY ISSUE
-            - BUG IN THE LOGIC
-            - DECISIONS/CHOICES TO MAKE
-
-        - Menu sub-item indentation (or similar visual cue)
-        @BUG: If you try to make a new card after an existing card has been selected,
-        @BUG: Type is nat save!? WTF?!
-          the Creation-Date is no longer available
+    - USABILITY ISSUE
+        - There is no "DONE!" or "DELETE" card functionality
         - Accordion menu highlighting (what has focus, what is visible in Detail view) isn't clear
-        - When a tickets Descriptor is changed the "Create Sub Item" and menu need to be re-rendered (refreshed)
-        - When a tickets parent is changed (onSave) the menu needs to be re-rendered (refreshed)
-        - When a tickets parent is changed the cards Project needs to be re-calculated (refreshed)
         - When a link is added another URL field needs to become available
-        - URL field: http:// or not? (user input, smart validation (accept both) or don't care?)
-        - Do we need a "schedule-time" to accompany "schedule-date"? (For appointments, etc.)
-        - Have the descriptor (at the very least) be required (=== implement validation)
-        - Have all sub-items be collapsed by default
-        - The very first form isn't loaded (form loads, but without the data)
         - Mark type of card (T0d0/Note/Dump)
-        - Fix textarea sizes (and maybe implement an autogrow?)
-        - Style fields to only look like form inputs when they are empty or have focus
-        - Author needs to be filled in (When users is implemented ?)
-        - Hide _id and _rev, only show revision number
-        - Creation date vs. Modified date
-        - Dummy out all tickets (ideally as an example, with information explaining why what is what)
         - We need to split the deck of cards into 3: Todo/Note/Dump and
           build a tabbed menu with each stack having it's own accordion menu
           and possibly it's own form (or logic to easily switch card lists.)
+
+    - BUG IN THE LOGIC
+        - If you try to make a new card after an existing card has been selected,
+          the Creation-Date is no longer available
+        - Type is not save!? Radio button WTF?!
+        - When a tickets Descriptor is changed the "Create Sub Item" and menu need to be re-rendered (refreshed)
+        - When a tickets parent is changed (onSave) the menu needs to be re-rendered (refreshed)
+        - When a tickets parent is changed the cards Project needs to be re-calculated (refreshed)
+        - The very first form isn't loaded (form loads, but without the data)
+
+    - IMPROVEMENTS
+        - Have all sub-items be collapsed by default
+        - Have the descriptor (at the very least) be required (=== implement validation)
+        - Fix textarea sizes (and maybe implement an autogrow?)
+        - Style fields to only look like form inputs when they are empty or have focus
+        - Author needs to be filled in (When users is implemented)
+        - Hide _id and _rev, only show revision number
         - traul the code and remove all console.log() calls (or make debug.log())
-        
-    NICE TO HAVES/OTHER IDEAS:
+
+    - DECISIONS/CHOICES TO MAKE
+        - URL field: http:// or not? (user input, smart validation (accept both) or don't care?)
+        - Do we need a "schedule-time" to accompany "schedule-date"? (For appointments, etc.)
+        - Creation date vs. Modified date
+        - Shouldn't we use event watchers for the (read-only) fields the are auto-generated?
+
+    - NEW FEATURES/OTHER IDEAS:
+        - Dummy out all tickets (ideally as an example, with information explaining why what is what)
         - Priority needs to be a slider (low)-----|-----(high) with alphabetical values
         - if all that is set is the URL field, pull the content and display that
           instead of the form (collapse the form for easy expand)
@@ -50,7 +51,8 @@
     DONE:
         - Implement a fix for the "can't nest optgroup bug" (http://stackoverflow.com/questions/1037732/nesting-optgroups-in-a-dropdownlist-select)
         - Have buildMenu implement (an altered version?) of buildCardList()
-
+        @BUG: radio buttons value is not saved
+        @BUG: getCardType is flawed, it always returns "dump"
 */
 
 /**
@@ -64,8 +66,46 @@ debug.info('Debugging is ' + (window.DEBUG = true));
 
 
 /********( Add extra functionality to JQuery )*********************************/
-//http://stackoverflow.com/questions/1184624/serialize-form-to-json-with-jquery#answer-1186309
-$.fn.serializeObject = function(p_bSkipEmtyValues)
+/*!
+ * ----- Based on the following (I added p_bSkipEmtyValues) -----
+ *
+ * jQuery serializeObject - v0.2 - 1/20/2010
+ * http://benalman.com/projects/jquery-misc-plugins/
+ *
+ * Copyright (c) 2010 "Cowboy" Ben Alman
+ * Dual licensed under the MIT and GPL licenses.
+ * http://benalman.com/about/license/
+ */
+
+// Whereas .serializeArray() serializes a form into an array, .serializeObject()
+// serializes a form into an (arguably more useful) object.
+
+(function($,undefined){
+  '$:nomunge'; // Used by YUI compressor.
+
+  $.fn.serializeObject = function(p_bSkipEmtyValues){
+    p_bSkipEmtyValues = p_bSkipEmtyValues || false;
+
+    var oSerialized = {};
+    $.each( this.serializeArray(), function(){
+        if (p_bSkipEmtyValues===false || (p_bSkipEmtyValues===true && this.value !== '')) {
+            var sName = this.name,
+                uValue = this.value
+            ;
+
+            oSerialized[sName] = oSerialized[sName] === undefined ? uValue
+              : $.isArray( oSerialized[sName] ) ? oSerialized[sName].concat( uValue )
+              : [ oSerialized[sName], uValue ];
+        }
+    });
+
+    return oSerialized;
+  };
+
+})(jQuery);
+
+
+$.fn._serializeObject = function(p_bSkipEmtyValues)
 {
     p_bSkipEmtyValues = p_bSkipEmtyValues || false;
 
@@ -150,7 +190,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
         loadButtons();
 
 //        _addCardSelect();
-        _addCardList();
+//        _addCardList();
     };
 
     ///////////////////////////// Private Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -174,9 +214,6 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
             p_oEvent.preventDefault();
 
             var sType = this.name.split('-').pop();
-            console.log('-------------------------------------------------');
-            console.log(p_oEvent, sType);
-            console.log('-------------------------------------------------');
 
             var $Form = loadForm(p_sDetailSelector, '#details-form');
             resetCreateChildButton();
@@ -216,26 +253,29 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
             });
 
             self.iCardCount = iCount;
-            console.log('-- getCards -- Cards loaded from DB: ', self.oCards);
+            debug.log('-- getCards -- Cards loaded from DB: ', self.oCards);
         }
 
         return self.oCards;
     }
 
     function getCardType(p_$Form) {
-        var sType
-                , $Nodes = p_$Form.find('.required[value=""]')
-                ;
+        var   sType = 'todo'
+            , $Nodes = p_$Form.find('.required')
+        ;
 
-        if ($Nodes.hasClass('todo') === false) {
-            // All the fields required for a todo have been filled
-            sType = 'todo';
-        } else if ($Nodes.hasClass('note') === false) {
-            // All the fields required for a note have been filled
-            sType = 'note';
-        } else {
-            sType = 'dump';
-        }
+        $Nodes.each(function(){
+            var $this = $(this);
+            if(sType === 'todo' && $this.hasClass('todo') && !$this.val()){
+                // Any empty "T0D0" field! Degrade to "NOTE"
+                sType = 'note';
+            }else if(sType === 'note' && $this.hasClass('note')  && !$this.val()){
+                // Any empty "NOTE" fields and the card is degraded to "DUMP"
+                sType = 'dump';
+            }else{
+                // don't care
+            }
+        });
 
         return sType;
     }
@@ -249,16 +289,6 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
 
         debug.log('-- makeId: ', sId);
         return sId;
-    }
-
-    function getProjects(p_bRefresh) {
-        p_bRefresh = p_bRefresh || false;
-        var oProjects = {};
-        $.each(getCards(), function(p_sIndex, p_oCard) {
-            console.log('project',p_oCard);
-            oProjects[p_sIndex] = p_oCard;
-        });
-        return oProjects;
     }
 
     function buildCardList(p_sNodeType) { // ul>li, optGroup>option, dt/dd?, etc
@@ -413,21 +443,18 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
         return $Tree;
     }
 
-    //////////////////////////// Menu Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    function appendToMenu(p_oDoc) {
-        var $a = $('<a href="#/todo-app/' + p_oDoc._id + '">'
-                + p_oDoc.descriptor
-                + '</a>'
-        );
+    function getProjectName(p_oDoc){
+        var oCards = getCards()
+            , oTarget = p_oDoc
+        ;
 
-        $a.click(menuLinkClick);
+        while(oTarget.parent){
+            oTarget = oCards[oTarget.parent];
+        }
 
-        $('#document-list').append(
-                $('<li class="no-children"><\/li>').append($a)
-//            . append($('<div> child cards go here </div>'))
-        );
+        return oTarget.descriptor || '';
     }
-
+    //////////////////////////// Menu Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     function loadMenu(p_bRefresh) {
         debug.log('-- loadMenu Called: ', p_bRefresh);
 
@@ -486,27 +513,23 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
     }
 
     //////////////////////////// Form Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    /*
-     @TODO: For easy passing around and chaining, form methods should be refactored
-     so that they ALL accept the same parameters. This should be either p_$Form or
-     p_oForm and p_oOptions
-     */
-
     function resetForm(p_$Form) {
-        $(':input', p_$Form).not(':button, :submit, :reset')
-                .val('')
-                .removeAttr('checked')
-                .removeAttr('selected')
-        ;
 
         function resetSelectOptions(p_$Form) {
-
             p_$Form.find('option').show();
 
             if (typeof self.oCurrentCard !== 'undefined') {
                 p_$Form.find('option[value="' + self.oCurrentCard._id + '"]').hide();
             }
+            return p_$Form;
         }
+
+        $(':input', p_$Form).not(':button, :submit, :reset, :radio, :checkbox').val('');
+
+        $(':radio, :checkbox', p_$Form).removeAttr('checked');
+
+        var $Select = $('select', p_$Form);
+        $Select.find(':selected').removeAttr('selected');
 
         resetSelectOptions(p_$Form);
         resetCreateChildButton();
@@ -523,26 +546,38 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
         p_bParent = p_bParent || false;
 
         if (p_bParent === true) {
-            var aParentFields = ['category', 'type', 'project'];
+            var aParentFields = ['category'];
         }
 
         resetForm(p_$Form);
 
         $.each(p_oDoc, function(p_sName, p_sValue) {
             if (p_$Form.find('[name="' + p_sName + '"]').length > 0) {
-                // assign value (or set selected if radio/check/select)
+
                 if (p_bParent === false || (p_bParent === true && $.inArray(p_sName, aParentFields) > -1)) {
-                    p_$Form.find('[name="' + p_sName + '"]').val(p_sValue);
+                    var $Field = p_$Form.find('[name="' + p_sName + '"]');
+
+                    if($Field.attr('type') === 'radio'){
+                        $Field.each(function(){
+                            var $this = $(this);
+                            if($this.val() === p_sValue){
+                                $this.attr('checked','checked');
+                            }
+                        });
+                    }else{
+                        $Field.val(p_sValue);
+                    }
                 }
             } else {
                 debug.log('Could not find field for "' + p_sName + '".');
             }
         });
 
-        if (p_bParent === true) {
-            // @TODO: Select the parent in select[name="parent"]
-        }
+        // Add list of Projects to Project Select box
+        $('input[name="project"]').val(getProjectName(p_oDoc));
 
+        // Add list of Projects to Project Select box
+        $('input[name="cardtype"]').val(getCardType(p_$Form));
     }
 
     function loadForm(p_sTargetSelector, p_sSourceSelector) {
@@ -554,22 +589,8 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
                     './forms.html ' + p_sSourceSelector
                     , function(/*p_sResponseText/*, p_sTextStatus/*, p_oXMLHttpRequest*/) {
                         var $Form = $(this).find('form');
-
                         // @TODO: Handle AJAX Errors
-
                         enhanceForm($Form);
-
-                        $Form.submit(
-                            function(p_oEvent) {
-                                p_oEvent.preventDefault();
-                                if (validateForm($Form) === true) {
-                                    saveForm($Form);
-                                } else {
-                                    // Warnings should have already been generated
-                                    debug.log('Error: Form does not validate.');
-                                }
-                            }
-                        );
                     }
             ).find('form');
         } else {
@@ -588,15 +609,10 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
     function saveForm(p_$Form) {
         debug.log('-- saveForm Called: ', p_$Form);
 
-        // If the current card does not yet have an ID we must give it one
-        if (p_$Form.find('[name="id"]').val() === '') {
-            p_$Form.find('[name="id"]').val(makeId(p_$Form));
-        } else {
-            debug.log('-- saveForm: Card already has an ID');
-        }
         var oJson = p_$Form.serializeObject(true);
 
         debug.log('Data to save: ', oJson);
+
         var oResponse;
         try {
             oResponse = AppDatabase.save(oJson);
@@ -653,7 +669,6 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
 
         // Set Creation date
         p_$Form.find('[name="creation-date"]').each(function(/*p_iIndex, p_oElement*/) {
-            console.warn(typeof this.value);
             if (this.value === '') {
                 this.value = new Date().toString();
             }
@@ -708,13 +723,22 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
 
                 });
 
-        // Add list of Projects to Project Select box
-        $.each(getProjects(), function(p_iIndex, p_oProject) {
-            $('select[name="project"]').append('<option>' + p_oProject + '<\/option>');
-        });
-
         // Add list of Cards to Parent Select box
         $('.cardlist').append(buildCardList('select'));
+
+        p_$Form.submit(
+            function(p_oEvent) {
+                p_oEvent.preventDefault();
+                if (validateForm(p_$Form) === true) {
+                    saveForm(p_$Form);
+                } else {
+                    // Warnings should have already been generated
+                    debug.log('Error: Form does not validate.');
+                }
+            }
+        );
+
+        return p_$Form;
     }
 
     // @TODO: Implement Logic!

@@ -12,6 +12,9 @@
         4.2. Specific Fields
         4.3. Helper Classes
         4.4. Overrides for JQuery UI AutoComplete
+
+    5. Menu
+
 	EOF
 */
 /********( CSS Introduction )**************************************************/
@@ -135,6 +138,15 @@ form {
         border-color: gray lightgray lightgray gray;
     }
 
+    form label {
+        display: block;
+        font-size: 80%;
+        width: 100%;
+    }
+    form p label {
+        display: inline;
+    }
+
     form button {
         border-color: lightgray gray gray lightgray;
         position: relative;
@@ -164,7 +176,18 @@ form {
         color: #666;
     }
 
+    [readonly]::-webkit-input-placeholder	{
+        color: #CCC;
+    }
+
+    [readonly]:-moz-placeholder {
+        color: #CCC;
+    }
+
+
+
     /********( Specific Fields )***********************************************/
+
     label input[type="radio"] {
         width: 1em;
         height: 1em;
@@ -181,6 +204,12 @@ form {
     form [disabled] {
         background-color: transparent;
         border: none;
+    }
+
+    form [readonly] {
+        background-color: transparent;
+        color: #BBB;
+        border: 1px dashed #EEE;
     }
 
     form button[disabled] {
@@ -287,6 +316,19 @@ form {
         #body .ui-selectmenu-menu ul ul {
             border-left-color: blue;
         }
+
+/********( Menu )**************************************************************/
+    #body #overview li[level="1"] a {
+        text-indent: 2.5em;
+    }
+
+    #body #overview li[level="2"] a {
+        text-indent: 3.5em;
+    }
+
+    #body #overview li[level="3"] a {
+        text-indent: 4.5em;
+    }
 
 /********( EOF )***************************************************************/
 
