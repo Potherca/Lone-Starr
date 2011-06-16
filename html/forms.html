@@ -4,7 +4,7 @@
     <title>Available Forms</title>
 </head>
 <body>
-    <form action="" method="post" id="details-form">
+    <form action="" method="post" id="details-form" style="display:none">
         <fieldset>
 
             <!--<input type="text" name="id" value="" class="todo note required tiny" placeholder="ID" readonly="readonly">-->
@@ -17,7 +17,7 @@
 
             <textarea rows="" cols="" name="main-text"  class="todo note required" placeholder="Enter Text..."></textarea>
 
-            <input type="text" name="tags" value="" class="todo note" placeholder="Add Tags">
+            <input type="text" name="context" value="" class="todo note" placeholder="Add Context">
 
             <input type="url" name="links" value="" class="todo note" placeholder="Add relevant URLs">
         </fieldset>
@@ -36,6 +36,10 @@
 
             <label>Creation Date:
                 <input type="text" name="creation-date" readonly="readonly" value="" class="todo note" placeholder="Created on ...">
+            </label>
+
+            <label>Modified Date:
+                <input type="text" name="modified-date" readonly="readonly" value="" class="todo note" placeholder="Modified on ...">
             </label>
 
             <label>

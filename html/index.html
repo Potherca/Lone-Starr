@@ -11,11 +11,25 @@
     <link rel="stylesheet" href="styles/WalterTurncoat.css" />
     <link rel="stylesheet" href="styles/base/jquery-ui.min.css" />
     <link rel="stylesheet" href="styles/default.css" />
+    <link rel="stylesheet" href="scripts/jquery.dynatree/skin/ui.dynatree.css" />
 
     <script src="scripts/jquery-1.6.1.min.js"></script>
-    <script src="scripts/jquery-ui-1.8.13.custom.min.js"></script>
+    <script src="scripts/jquery-ui-1.8.13.min.js"></script>
     <script src="scripts/couch.js"></script>
     <script src="scripts/todo-app.js"></script>
+
+
+    <script src="scripts/jquery.cookie.js" type="text/javascript"></script>
+    <script src="scripts/jquery.dynatree/jquery.dynatree.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        Todo.load(
+              '#overview'
+            , '#detail'
+            , 'todo-app'
+//            , 'todo-data'
+        );
+    </script>
 </head>
 
 <body id="body">

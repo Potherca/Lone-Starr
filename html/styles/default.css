@@ -91,7 +91,7 @@
     #overview {
         font-size: 80%;
         line-height: 0.8em;
-        padding: 1em 0 1em 1em;
+        padding: 1em 0;
         width: 18em;
     }
 
@@ -194,7 +194,7 @@ form {
     }
 
     form [name="main-text"] {
-        height: 40%;
+        height: 14em;
     }
 
     form [name="motivation"] {
@@ -318,6 +318,7 @@ form {
         }
 
 /********( Menu )**************************************************************/
+/*
     #body #overview li[level="1"] a {
         text-indent: 2.5em;
     }
@@ -328,6 +329,10 @@ form {
 
     #body #overview li[level="3"] a {
         text-indent: 4.5em;
+    }
+*/
+    .dynatree-container {
+        margin-left: 0;
     }
 
 /********( EOF )***************************************************************/

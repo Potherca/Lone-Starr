@@ -1,29 +1,32 @@
 /*
 @MAJOR_TODOS:
      NOW WORKING ON:
-        CSS: Menu sub-item indentation (or similar visual cue)
+        - DynaTree is not styled!
         --- nothing ---
 
     BUGS/YET TO BE DONE:
+    - PROJECT MANAGEMENT
+        - Cleanup the JS files by moving stuff to Barf and include it using git-subtree
+        - We need a view in the Couch that returns all the context
+
     - USABILITY ISSUE
+        - CardType needs to be updated on Edit, not on Save
         - There is no "DONE!" or "DELETE" card functionality
-        - Accordion menu highlighting (what has focus, what is visible in Detail view) isn't clear
+        - Use different Icons based on CardType
         - When a link is added another URL field needs to become available
-        - Mark type of card (T0d0/Note/Dump)
-        - We need to split the deck of cards into 3: Todo/Note/Dump and
-          build a tabbed menu with each stack having it's own accordion menu
-          and possibly it's own form (or logic to easily switch card lists.)
 
     - BUG IN THE LOGIC
-        - If you try to make a new card after an existing card has been selected,
-          the Creation-Date is no longer available
-        - Type is not save!? Radio button WTF?!
-        - When a tickets Descriptor is changed the "Create Sub Item" and menu need to be re-rendered (refreshed)
-        - When a tickets parent is changed (onSave) the menu needs to be re-rendered (refreshed)
-        - When a tickets parent is changed the cards Project needs to be re-calculated (refreshed)
-        - The very first form isn't loaded (form loads, but without the data)
+        - Create-From-Parent does not set the Parent field!
+        - When a tickets Descriptor is changed (onSave) the "Create Sub Item" and menu need to be re-rendered (refreshed)
+        - When a tickets parent  is  changed   (onSave) the menu needs to be re-rendered (refreshed)
+        - When a tickets parent  is  changed   (onSave) the cards Project needs to be re-calculated (refreshed)
 
     - IMPROVEMENTS
+        - Use markdown for main text (usefull only when displayed as HTML when not edited)
+        - Grab title from the first line, instead of having a separate input field
+        - Wrap titles in tree
+        - Disable the save button untill a field is altered
+        - Use Dynatree drag'n'drop to change parent
         - Have all sub-items be collapsed by default
         - Have the descriptor (at the very least) be required (=== implement validation)
         - Fix textarea sizes (and maybe implement an autogrow?)
@@ -34,25 +37,37 @@
 
     - DECISIONS/CHOICES TO MAKE
         - URL field: http:// or not? (user input, smart validation (accept both) or don't care?)
-        - Do we need a "schedule-time" to accompany "schedule-date"? (For appointments, etc.)
-        - Creation date vs. Modified date
+        - Do we need a "schedule-time" to accompany "schedule-date"? (For appointments, etc.) We could use the Heatmap example
         - Shouldn't we use event watchers for the (read-only) fields the are auto-generated?
+        - Do we really need to split the deck of cards into 3: Todo/Note/Dump?
 
     - NEW FEATURES/OTHER IDEAS:
+        - Break the menu down into smaller parts and call Views int he coiuch onClick (important when ammount of documents get larger)
         - Dummy out all tickets (ideally as an example, with information explaining why what is what)
         - Priority needs to be a slider (low)-----|-----(high) with alphabetical values
         - if all that is set is the URL field, pull the content and display that
-          instead of the form (collapse the form for easy expand)
+          instead of the form (collapse/hide the form and add [Show] button)
         - Instead of one doc per task, have one doc for all tasks, using the todo.txt syntax?
         - For multi-user support, why not encode the data using the password as a salt?
         - Edit *enitire* task as plain text, replacing the form with one-big-ass textarea for the user
           to edit (ala Futon interface?) just as if editing "todo.txt"
+        - The DB name could be stored in a doc. On first-run (doc doesn't exist) we could show a form asking for values.
+          Anything that is currently hardcoded could be set as default, allowing new users to override values.
 
     DONE:
-        - Implement a fix for the "can't nest optgroup bug" (http://stackoverflow.com/questions/1037732/nesting-optgroups-in-a-dropdownlist-select)
-        - Have buildMenu implement (an altered version?) of buildCardList()
         @BUG: radio buttons value is not saved
         @BUG: getCardType is flawed, it always returns "dump"
+        - Accordion menu highlighting (what has focus, what is visible in Detail view) isn't clear
+        @BUG: Type is not save!? Radio button WTF?!
+        @BUG: The very first form isn't loaded (form loads, but without the data) === used a nasty hack (display:none;/.show())
+        @BUG: If you try to make a new card after an existing card has been selected, the Creation-Date is no longer available
+        @DONE: Implement a fix for the "can't nest optgroup bug" (http://stackoverflow.com/questions/1037732/nesting-optgroups-in-a-dropdownlist-select)
+        @DONE: Have buildMenu implement (an altered version?) of buildCardList()
+        @DONE: Mark type of card (T0d0/Note/Dump)
+        @DONE: DynaTree instead of accordion
+        @DONE: Use a different Couch for Data and App === Made Couch settable.
+        @DECIDE: Creation date vs. Modified date === Added a Creation date
+
 */
 
 /**
@@ -76,10 +91,6 @@ debug.info('Debugging is ' + (window.DEBUG = true));
  * Dual licensed under the MIT and GPL licenses.
  * http://benalman.com/about/license/
  */
-
-// Whereas .serializeArray() serializes a form into an array, .serializeObject()
-// serializes a form into an (arguably more useful) object.
-
 (function($,undefined){
   '$:nomunge'; // Used by YUI compressor.
 
@@ -104,29 +115,6 @@ debug.info('Debugging is ' + (window.DEBUG = true));
 
 })(jQuery);
 
-
-$.fn._serializeObject = function(p_bSkipEmtyValues)
-{
-    p_bSkipEmtyValues = p_bSkipEmtyValues || false;
-
-    var o = {};
-    var a = this.serializeArray();
-    $.each(a, function() {
-        if (p_bSkipEmtyValues===false || (p_bSkipEmtyValues===true && this.value !== '')) {
-
-            if (o[this.name] !== undefined) {
-                if (!o[this.name].push) {
-                    o[this.name] = [o[this.name]];
-                }
-                o[this.name].push(this.value || '');
-            } else {
-                o[this.name] = this.value || '';
-            }
-        }
-    });
-    return o;
-};
-
 /********( Overrides for JQuery UI Autocomplete )******************************/
 $.widget( "custom.catcomplete", $.ui.autocomplete, {
             _renderMenu: function( ul, items ) {
@@ -143,54 +131,39 @@ $.widget( "custom.catcomplete", $.ui.autocomplete, {
             }
         });
 
-/********()********************************************************************/
-var AppDatabase, StorageDatabase;
-
-// Wait for the Couch object to become available before we do anything else.
-(function() {
-    if (window.CouchDB) {
-        AppDatabase = StorageDatabase = new CouchDB('todo-app', null);
-    } else {
-        setTimeout(arguments.callee)
-    }
-})();
-
-/********()********************************************************************/
-// If we do not have user credentials, ask the user to identify himself
-// Validate the User/Pass against the data in the Couch
-// From here on out we have credentials
-// Read the hash to see if we should display a specific page else display home
-/********()********************************************************************/
-
-var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
+var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
 
     ////////////////////////// Settings and Options \\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    var self = this;
-
-    this.sOverviewSelector = p_sOverviewSelector;
-    this.oCurrentCard = undefined;
+    var   self = this
+        , bFormLoaded = false
+        , sOverviewSelector = p_sOverviewSelector
+        , oCouch
+    ;
+    self.oCurrentCard = undefined;
 
     ///////////////////////////// Public Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    this.init = function(p_sOverviewSelector, p_sDetailSelector) {
+    self.init = function(p_sOverviewSelector, p_sDetailSelector) {
+        $(document).ready(function() {
 
-        self.config = AppDatabase.open('config');
-        if (typeof self.config !== 'Object') {
-            if (self.config.tags instanceof Array === false) {
-                // No tags have been defined yet.
-                self.config.tags = [];
+            var oResponse;
+            try {
+                oResponse = oCouch.open('config');
+            } catch(e) {
+                oResponse = e;
             }
-        }
 
-        loadMenu(true);
-        if (false) {
-            // @TODO: Check hash and load appropriate Card
-            //        This would also reuire action later on to select right place in menu
-            loadForm(p_sDetailSelector, '#details-form');
-        }
-        loadButtons();
+            if (typeof self.config !== 'Object') {
+                self.config = {context:{}};
+            }
 
-//        _addCardSelect();
-//        _addCardList();
+            loadMenu(true);
+            // @TODO: Check hash and/or Read cookie and load appropriate Card to form
+            // This would also require action later on to select right place in menu
+            var $Form = loadForm(p_sDetailSelector, '#details-form')
+            loadButtons();
+    //        _addCardSelect();
+    //        _addCardList();
+        });
     };
 
     ///////////////////////////// Private Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -216,6 +189,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
             var sType = this.name.split('-').pop();
 
             var $Form = loadForm(p_sDetailSelector, '#details-form');
+            $Form.show();
             resetCreateChildButton();
             deselectMenu();
 
@@ -240,7 +214,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
         p_bRefresh = p_bRefresh || false;
 
         if (p_bRefresh === true || typeof self.oCards === 'undefined') {
-            var oDocs = AppDatabase.allDocs({"include_docs":true});
+            var oDocs = oCouch.allDocs({"include_docs":true});
             var iCount = 0;
             self.oCards = {};
 
@@ -429,7 +403,6 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
                  */
                 $Tree.find(sGroupTag).each(function(p_iIndex, p_oNode){
                     var $Node = $(p_oNode);
-//                $Node.attr('label', $Node.parent().attr(sAttr));//.get(0).firstChild.nodeValue);
                     $Node.parent().after($Node.detach());
                 });
                 $Tree.find(sTag).unwrap();
@@ -458,12 +431,6 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
     function loadMenu(p_bRefresh) {
         debug.log('-- loadMenu Called: ', p_bRefresh);
 
-        function createEmtyMenu(p_sOverviewNode) {
-            self.menu = $('<ul id="document-list"><\/ul>');
-            $(p_sOverviewNode).html(self.menu);
-            return self.menu;
-        }
-
         function attachLinks(p_$CardList){
             return p_$CardList.find('li').each(function(){
                 var   $this = $(this)
@@ -484,32 +451,30 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
         var $CardList = buildCardList('list');
         attachLinks($CardList);
         self.menu = $CardList;
-        $(self.sOverviewSelector).html(self.menu);
-        $(self.sOverviewSelector).find('ul').accordion({
-//            collapsible: true
-                event: "mouseover"
-                , fillSpace : true
-            })
-//            .sortable({"cancel": "div"})
-//            .disableSelection()
-        ;
+        $(sOverviewSelector).html(self.menu);
 
-        deselectMenu(); // Accordion state selects first item by default
+          $(sOverviewSelector).dynatree({
+                persist: true
+              , autoCollapse: true
+              , onClick: menuLinkClick
+          });
+        function accordion(){
+            $(sOverviewSelector).find('ul').accordion({
+    //            collapsible: true
+                    event: "mouseover"
+                    , fillSpace : true
+                })
+    //            .sortable({"cancel": "div"})
+    //            .disableSelection()
+            ;
 
-//        createEmtyMenu(self.sOverviewSelector);
-//        var p_oDocs = getCards(p_bRefresh);
-//
-//        if (p_oDocs) {
-//            $.each(p_oDocs, function(i, p_oDoc) {
-//                appendToMenu(p_oDoc)
-//            });
-//        } else {
-//            $('#document-list').append('<em>No Cards found<\/em>');
-//        }
+            deselectMenu(); // Accordion state selects first item by default
+        }
     }
 
     function deselectMenu() {
-        $(self.menu).find('.ui-state-active').removeClass('ui-state-active ui-corner-top').addClass('ui-state-default ui-corner-all');
+//        $(self.menu).find('.ui-state-active').removeClass('ui-state-active ui-corner-top').addClass('ui-state-default ui-corner-all');
+        // @TODO Do DynaTree specific deselect
     }
 
     //////////////////////////// Form Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -528,8 +493,15 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
 
         $(':radio, :checkbox', p_$Form).removeAttr('checked');
 
+        // Set Creation date and Modified date
+        p_$Form.find('[name="creation-date"], [name="modified-date"]').each(function(/*p_iIndex, p_oElement*/) {
+            if (this.value === '') {
+                this.value = new Date().toString();
+            }
+        });
+
         var $Select = $('select', p_$Form);
-        $Select.find(':selected').removeAttr('selected');
+        $Select.find(':selected[value!=""]').removeAttr('selected');
 
         resetSelectOptions(p_$Form);
         resetCreateChildButton();
@@ -585,12 +557,15 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
 
         if ($(p_sSourceSelector).length === 0) {
             debug.log('-- loadForm: loading ' + p_sSourceSelector + '');
+            bFormLoaded = false;
+
             return $(p_sTargetSelector).load(
                     './forms.html ' + p_sSourceSelector
                     , function(/*p_sResponseText/*, p_sTextStatus/*, p_oXMLHttpRequest*/) {
                         var $Form = $(this).find('form');
                         // @TODO: Handle AJAX Errors
                         enhanceForm($Form);
+                        bFormLoaded = true;
                     }
             ).find('form');
         } else {
@@ -615,7 +590,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
 
         var oResponse;
         try {
-            oResponse = AppDatabase.save(oJson);
+            oResponse = oCouch.save(oJson);
         } catch(e) {
             oResponse = e;
         }
@@ -667,18 +642,11 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
             });
         }
 
-        // Set Creation date
-        p_$Form.find('[name="creation-date"]').each(function(/*p_iIndex, p_oElement*/) {
-            if (this.value === '') {
-                this.value = new Date().toString();
-            }
-        });
-
         // Create Button Set for Type
 //        p_$Form.find(".type-container").buttonset();
 
-        // Make AutoComplete for Tags
-        p_$Form.find('[name="tags"]')
+        // Make AutoComplete for context
+        p_$Form.find('[name="context"]')
             // don't navigate away from the field on tab when selecting an item
                 .bind("keydown", function(event) {
                     if (event.keyCode === $.ui.keyCode.TAB
@@ -692,12 +660,12 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
                     minLength: 0,
                     delay: 0,
                     source: function(request, response) {
-                        //            var tags = tags.slice(0); // Copy the array so we can strip selected values from it later
+                        //            var context = context.slice(0); // Copy the array so we can strip selected values from it later
 
                         // delegate back to autocomplete, but extract the last term
                         response(
                                 $.ui.autocomplete.filter(
-                                        self.config.tags
+                                        self.config.context
                                         , request.term.split(/,\s*/).pop()
                                 )
                         );
@@ -716,7 +684,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
                         terms.push("");
                         $(this).val(terms.join(", "));
 
-                        // @TODO: Filter already selected tags from list
+                        // @TODO: Filter already selected context from list
 
                         return false;
                     }
@@ -755,27 +723,25 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
     /* All event handler functions reside here, so they can be included simply
      * by referencing them by name...
      */
-    function menuLinkClick(p_oEvent){
+    function menuLinkClick(p_oNode, p_oEvent){
             p_oEvent.preventDefault();
-
             var oFormWrapper = loadForm(p_sDetailSelector, '#details-form');
-
             // Get doc from stack using ID from hash
             // @TODO: Validate this works in other browsers than Chrome...
 
-            var id = p_oEvent.currentTarget.hash.substring('#/todo-app/'.length);
+//            var id = p_oEvent.currentTarget.hash.substring('#/todo-app/'.length); //regular click event
+            var id = p_oNode.span.children[3].hash.substring('#/todo-app/'.length); // DynaTree Click Event
             var i = 0;
 
             (function() {
-                if (i > 2000 // Timeout after 2 seconds
-                        || (oFormWrapper && oFormWrapper.length && oFormWrapper.length > 0)
-                        ) {
-                    if (oFormWrapper.length && oFormWrapper.length > 0) {
+                if (i > 3000){// Timeout after 3 seconds
+                    debug.error('-- Click Event Timed out.', p_oNode);
+                }else if (bFormLoaded === true){//oFormWrapper && oFormWrapper.length && oFormWrapper.length > 0) {
+                        $('#details-form').show();
                         oFormWrapper[0].reset();
 
                         self.oCurrentCard = getCards()[id];
                         populateForm(oFormWrapper, self.oCurrentCard);
-                    }
                 } else {
                     i++;
                     setTimeout(arguments.callee)
@@ -841,9 +807,22 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector) {
     })();
 
     //////////////////////////// Init the class \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    this.init(p_sOverviewSelector, p_sDetailSelector);
+
+// Wait for the Couch object to become available before we do anything else.
+    var i = 0;
+    (function() {
+        if (i > 3000){// Timeout after 3 seconds
+            debug.error('-- Timed out waiting for CouchDB becoming available.');
+        }else if (window.CouchDB) {
+            // @TODO: First get a list of available Couches to validate the given Apps/Storage DB actually exists
+            oCouch = new CouchDB(p_sCouch, null);
+            self.init(p_sOverviewSelector, p_sDetailSelector);
+        } else {
+            setTimeout(arguments.callee)
+        }
+    })();
 };
 
-$(document).ready(function() {
-    window.oTodo = new window.Todo('#overview', '#detail');
-});
+Todo.load = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch){
+    window.oTodo = new window.Todo(p_sOverviewSelector, p_sDetailSelector, p_sCouch);
+};
