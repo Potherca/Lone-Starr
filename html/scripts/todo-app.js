@@ -247,7 +247,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
             });
 
             self.iCardCount = iCount;
-            debug.log('-- getCards -- Cards loaded from DB: ', self.oCards);
+            debug.log('-- getCards -- Loaded from DB: ', self.oCards);
         }
 
         return self.oCards;
@@ -448,45 +448,50 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
         return oTarget.descriptor || '';
     }
 
-    function getContext(){
-        var oResponse, aContext = [], oContext = {};
-        try {
-            oResponse = oCouch.view('app/context', {group_level:1});
-        } catch(e) {
-            oResponse = e;
+    function getContext(p_bRefresh){
+        p_bRefresh = p_bRefresh || false;
+
+        if (p_bRefresh === true || typeof self.aContext === 'undefined') {
+            var oResponse, aContext = [], oContext = {};
+            try {
+                oResponse = oCouch.view('app/context', {group_level:1});
+            } catch(e) {
+                oResponse = e;
+            }
+
+            debug.log('Response for Context: ', oResponse);
+
+            if (oResponse) {
+                // Sort all Contexts into Categories
+                $.each(oResponse.rows, function(p_iIndex, p_oContext){
+                    var aContextKeys = p_oContext.key.split(':',2);
+                    if(aContextKeys.length === 1){
+                        // No Category found
+                        aContextKeys[1] = aContextKeys[0];
+                        aContextKeys[0] = 'Un-Categorized';
+                    }
+
+                    if(typeof oContext[aContextKeys[0]] === 'undefined'){
+                        oContext[aContextKeys[0]] = [];
+                    }
+                    oContext[aContextKeys[0]].push(aContextKeys[1]);
+                });
+            }
+
+            // Build Output Array
+            $.each(oContext, function(p_sCategory, p_aContexts){
+                p_aContexts.sort();
+                $.each(p_aContexts, function(p_iIndex, p_sLabel){
+                    aContext.push({"category": p_sCategory, "label": p_sLabel, "value":p_sCategory +':'+p_sLabel});
+                });
+            });
+            self.aContext = aContext;
+            debug.log('-- getContext -- Loaded from DB: ', self.aContext);
         }
 
-        debug.log('Response for Context: ', oResponse);
-
-        if (oResponse) {
-            // Sort all Contexts into Categories
-            $.each(oResponse.rows, function(p_iIndex, p_oContext){
-                var aContextKeys = p_oContext.key.split(':',2);
-                if(aContextKeys.length === 1){
-                    // No Category found
-                    aContextKeys[1] = aContextKeys[0];
-                    aContextKeys[0] = 'Un-Categorized';
-                }
-
-                if(typeof oContext[aContextKeys[0]] === 'undefined'){
-                    oContext[aContextKeys[0]] = [];
-                }
-                oContext[aContextKeys[0]].push(aContextKeys[1]);
-            });
-        }
-
-        // Build Output Array
-        $.each(oContext, function(p_sCategory, p_aContexts){
-            p_aContexts.sort();
-            $.each(p_aContexts, function(p_iIndex, p_sLabel){
-                aContext.push({"category": p_sCategory, "label": p_sLabel, "value":p_sCategory +':'+p_sLabel});
-            });
-        });
-
-        console.log(aContext);
-
-        return aContext;
+        return self.aContext;
     }
+
     //////////////////////////// Menu Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     function loadMenu(p_bRefresh) {
         debug.log('-- loadMenu Called: ', p_bRefresh);
