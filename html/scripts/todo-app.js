@@ -1,48 +1,65 @@
 /*
-@MAJOR_TODOS:
+I think the form should be structured more like this:
+
+	I [want/need] to do [description] for [me/us/them]
+		-- so that [motivation]
+		-- by/on [due date]
+		-- as part of [parent]
+        -- within context [context]
+        -- more information can be found at [URL] (and [URL])
+        -- this has priority (A/B/C/D/E/F/G)
+
+Where all but the first line are optional
+
+--------------------------------------------------------------------------------
+
+MAJOR_TODOS:
      NOW WORKING ON:
-        - DynaTree is not styled!
         --- nothing ---
+
+    NEXT:
+        - Create-From-Parent does not set the Parent field!
+        - Hide _id and _rev, only show revision number
+        - There is no "DONE!" or "DELETE" card functionality
+        - The form needs to be re-organized and properly styled. See note above.
+        - Author needs to be filled in (When users is implemented)
 
     BUGS/YET TO BE DONE:
     - PROJECT MANAGEMENT
         - Cleanup the JS files by moving stuff to Barf and include it using git-subtree
-        - We need a view in the Couch that returns all the context
 
     - USABILITY ISSUE
         - CardType needs to be updated on Edit, not on Save
-        - There is no "DONE!" or "DELETE" card functionality
         - Use different Icons based on CardType
         - When a link is added another URL field needs to become available
 
     - BUG IN THE LOGIC
-        - Create-From-Parent does not set the Parent field!
         - When a tickets Descriptor is changed (onSave) the "Create Sub Item" and menu need to be re-rendered (refreshed)
         - When a tickets parent  is  changed   (onSave) the menu needs to be re-rendered (refreshed)
         - When a tickets parent  is  changed   (onSave) the cards Project needs to be re-calculated (refreshed)
 
     - IMPROVEMENTS
+        - research CouchDB's "validate_doc_update" (is the information in chapter 7 of the book still accurate?)
+          and implement several checks like doc structure (allowed fields) and user (role?)
         - Use markdown for main text (usefull only when displayed as HTML when not edited)
         - Grab title from the first line, instead of having a separate input field
         - Wrap titles in tree
-        - Disable the save button untill a field is altered
+        - Disable the save button until a field is altered
         - Use Dynatree drag'n'drop to change parent
         - Have all sub-items be collapsed by default
-        - Have the descriptor (at the very least) be required (=== implement validation)
+        - Have the descriptor (at the very least) be required (=== implement validation, both in Client and on Couch)
         - Fix textarea sizes (and maybe implement an autogrow?)
         - Style fields to only look like form inputs when they are empty or have focus
-        - Author needs to be filled in (When users is implemented)
-        - Hide _id and _rev, only show revision number
-        - traul the code and remove all console.log() calls (or make debug.log())
+        - trawl the code and remove all console.log() calls (or make debug.log())
 
     - DECISIONS/CHOICES TO MAKE
         - URL field: http:// or not? (user input, smart validation (accept both) or don't care?)
-        - Do we need a "schedule-time" to accompany "schedule-date"? (For appointments, etc.) We could use the Heatmap example
+        - Do we need a "schedule-time" to accompany "schedule-date"? (For appointments, etc.) We could use a time Heatmap
         - Shouldn't we use event watchers for the (read-only) fields the are auto-generated?
         - Do we really need to split the deck of cards into 3: Todo/Note/Dump?
 
     - NEW FEATURES/OTHER IDEAS:
-        - Break the menu down into smaller parts and call Views int he coiuch onClick (important when ammount of documents get larger)
+        - Break the menu down into smaller parts and call Views in the couch onClick (important when amount of documents get larger)
         - Dummy out all tickets (ideally as an example, with information explaining why what is what)
         - Priority needs to be a slider (low)-----|-----(high) with alphabetical values
         - if all that is set is the URL field, pull the content and display that
@@ -61,11 +78,14 @@
         @BUG: Type is not save!? Radio button WTF?!
         @BUG: The very first form isn't loaded (form loads, but without the data) === used a nasty hack (display:none;/.show())
         @BUG: If you try to make a new card after an existing card has been selected, the Creation-Date is no longer available
+
         @DONE: Implement a fix for the "can't nest optgroup bug" (http://stackoverflow.com/questions/1037732/nesting-optgroups-in-a-dropdownlist-select)
         @DONE: Have buildMenu implement (an altered version?) of buildCardList()
         @DONE: Mark type of card (T0d0/Note/Dump)
         @DONE: DynaTree instead of accordion
         @DONE: Use a different Couch for Data and App === Made Couch settable.
+        @DONE: We need a view in the Couch that returns all the context
+
         @DECIDE: Creation date vs. Modified date === Added a Creation date
 
 */
@@ -145,16 +165,16 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
     self.init = function(p_sOverviewSelector, p_sDetailSelector) {
         $(document).ready(function() {
 
-            var oResponse;
-            try {
-                oResponse = oCouch.open('config');
-            } catch(e) {
-                oResponse = e;
-            }
-
-            if (typeof self.config !== 'Object') {
-                self.config = {context:{}};
-            }
+//            var oResponse;
+//            try {
+//                oResponse = oCouch.open('config');
+//            } catch(e) {
+//                oResponse = e;
+//            }
+//
+//            if (typeof self.config !== 'Object') {
+//                self.config = {context:{}};
+//            }
 
             loadMenu(true);
             // @TODO: Check hash and/or Read cookie and load appropriate Card to form
@@ -427,6 +447,46 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
 
         return oTarget.descriptor || '';
     }
+
+    function getContext(){
+        var oResponse, aContext = [], oContext = {};
+        try {
+            oResponse = oCouch.view('app/context', {group_level:1});
+        } catch(e) {
+            oResponse = e;
+        }
+
+        debug.log('Response for Context: ', oResponse);
+
+        if (oResponse) {
+            // Sort all Contexts into Categories
+            $.each(oResponse.rows, function(p_iIndex, p_oContext){
+                var aContextKeys = p_oContext.key.split(':',2);
+                if(aContextKeys.length === 1){
+                    // No Category found
+                    aContextKeys[1] = aContextKeys[0];
+                    aContextKeys[0] = 'Un-Categorized';
+                }
+
+                if(typeof oContext[aContextKeys[0]] === 'undefined'){
+                    oContext[aContextKeys[0]] = [];
+                }
+                oContext[aContextKeys[0]].push(aContextKeys[1]);
+            });
+        }
+
+        // Build Output Array
+        $.each(oContext, function(p_sCategory, p_aContexts){
+            p_aContexts.sort();
+            $.each(p_aContexts, function(p_iIndex, p_sLabel){
+                aContext.push({"category": p_sCategory, "label": p_sLabel, "value":p_sCategory +':'+p_sLabel});
+            });
+        });
+
+        console.log(aContext);
+
+        return aContext;
+    }
     //////////////////////////// Menu Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     function loadMenu(p_bRefresh) {
         debug.log('-- loadMenu Called: ', p_bRefresh);
@@ -576,6 +636,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
 
     // @TODO: Implement Logic!
     function validateForm(p_$Form) {
+        // This could also be done on the couch. Or *only* on the couch!
         debug.log('-- validateForm Called: ', p_$Form);
 
         return true;
@@ -660,14 +721,11 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
                     minLength: 0,
                     delay: 0,
                     source: function(request, response) {
-                        //            var context = context.slice(0); // Copy the array so we can strip selected values from it later
-
                         // delegate back to autocomplete, but extract the last term
                         response(
-                                $.ui.autocomplete.filter(
-                                        self.config.context
-                                        , request.term.split(/,\s*/).pop()
-                                )
+                            $.ui.autocomplete.filter(
+                                getContext(), request.term.split(/,\s*/).pop()
+                            )
                         );
                     },
                     focus: function() {

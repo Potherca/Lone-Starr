@@ -259,7 +259,7 @@ form {
         }
 
         #body .ui-autocomplete {
-            /*font-size: 80%;*/
+            font-size: 0.8em;
         }
 
         #body .ui-autocomplete-category {
