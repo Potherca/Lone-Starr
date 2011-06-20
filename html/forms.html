@@ -32,12 +32,13 @@
         <textarea rows="" cols="" name="main-text"  class="todo note required percent_40" placeholder="Long Description..."></textarea>
 
         <fieldset>
+            <dl class="info">
+                <dt>Revision:</dt><dd name="_rev"></dd>
+                <dt>CardType:</dt><dd name="cardtype"></dd>
+            </dl>
+
             <label>Author:
                 <input type="text" name="author" readonly="readonly" value="" class="todo note small" placeholder="Author ...">
-            </label>
-
-            <label>Project:
-                <input type="text" name="project" class="todo small" readonly="readonly" value="" placeholder="Project">
             </label>
 
             <label>Creation Date:
@@ -48,10 +49,6 @@
                 <input type="text" name="modified-date" readonly="readonly" value="" class="todo note" placeholder="Modified on ...">
             </label>
 
-            <label>
-                CardType:
-                <input type="text" name="cardtype" value="" placeholder="cardtype" readonly="readonly" class="tiny">
-            </label>
         </fieldset>
 
         <fieldset>

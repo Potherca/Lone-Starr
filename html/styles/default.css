@@ -67,7 +67,6 @@
         background-color: #FFF;
         border: 1px solid black;
         border-radius: 1em;
-        box-shadow: 1em 1em 1em #333;
         display: table-cell;
         height: auto;
         overflow: auto;
@@ -98,6 +97,7 @@
         background-color: rgba(25, 25, 25, 0.8);
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
+        box-shadow: -1em 1em 1em #333;
         left: -3em;
         line-height: 0.8em;
         margin-right: 0;
@@ -125,6 +125,7 @@
     #detail {
         right: 1.5em;
         width: 100%;
+        box-shadow: 1em 1em 1em #333;
     }
 
     #create-new-item-form {
@@ -177,6 +178,7 @@ form {
     form label {
         display: block;
         width: 100%;
+        clear: left;
     }
     form p label {
         display: inline;
@@ -279,6 +281,19 @@ form {
         width: 22.5%;
     }
 
+    form .info {
+        position: relative;
+    }
+
+    form .info dt,
+    form .info dd {
+        float: left;
+    }
+
+    form .info dd {
+        font-weight: bold;
+        margin-right: 1em;
+    }
 
     form .percent_60 {
         width: 60%;

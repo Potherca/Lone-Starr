@@ -3,33 +3,28 @@
         - Maintenance
             - Replace the toilet seat
 ======
-Suggested format for Todo.txt = +project @context (A) priority
+Suggested format for T0d0.txt = +project @context (A) priority
  https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format
  http://todotxt.com/
- ======
+======
+
 [description] -> needs to be a verb
-=====
-OPTIONAL FIELDS
 
-		-- so that [motivation]
-		-- by/on [due date]
-        -- within context [context]
-        -- more information can be found at [URL] (and [URL])
-        -- this has priority (A/B/C/D/E/F/G)
-
---------------------------------------------------------------------------------
+.------------------------------------------------------------------------------.
+|                   ALL OF THESE NEED TO BE MOVED TO GITHUB                    |
+'------------------------------------------------------------------------------'
 
 MAJOR_TODOS:
      NOW WORKING ON:
-        - Re-Style Form
-            - The form needs to be re-organized and properly styled. See note above.
-            - Hide _id and _rev, only show revision number
-            - All info fields that do not need to beaved to the couch need to *not* be form field but <span> or the like
+        - Use different Icons based on CardType (add icons to CSS and fix bug in getCardType function)
+        - Re-Style Form (Layout/Design)
+        - readonly-fields, like creation date/modified date/author/etc (things that are calculated in the DB)
+          need to be span/dl. For this to work, logic needs to be added to Couch Update Views
         --- nothing ---
 
     NEXT:
-        1. Validation
-        2. User (Login/Role/etc.)
+         1. Use CouchDb User functionality (Login/Role/etc.)
+         2. Validation
         - Create-From-Parent does not set the Parent field!
         - There is no "DONE!" or "DELETE" card functionality
         - Author needs to be filled in (When users is implemented)
@@ -37,16 +32,18 @@ MAJOR_TODOS:
     BUGS/YET TO BE DONE:
     - PROJECT MANAGEMENT
         - Cleanup the JS files by moving stuff to Barf and include it using git-subtree
+        - Several things could possible be moved to the server, like getting a cards type?
 
     - USABILITY ISSUE
-        - CardType needs to be updated on Edit, not on Save
-        - Use different Icons based on CardType
-        - When a link is added another URL field needs to become available
+        - CardType needs to be updated on Edit, not on Save (hijack validation)
+        - When a link is added a new field needs to become available
+        - When a depency is added a new field needs to become available
 
     - BUG IN THE LOGIC
+        - Currently all items in the menu are marked as "T0D0" because either the form
+          or the Cards are not loaded before the logic that calculates the CardType is triggered.
         - A task can be dependant on more than one other task
-        - form input needs to be HTML Entity encoded!
-        - The indentation in the dropdown list is incorrect
+        - form input needs to be HTML Entity encoded, otherwise the descriptor won't appear in the menu if it contains a special character
         - When a tickets Descriptor is changed (onSave) the "Create Sub Item" and menu need to be re-rendered (refreshed)
         - When a tickets parent  is  changed   (onSave) the menu needs to be re-rendered (refreshed)
         - When a tickets parent  is  changed   (onSave) the cards Project needs to be re-calculated (refreshed)
@@ -65,6 +62,10 @@ MAJOR_TODOS:
         - Fix textarea sizes (and maybe implement an autogrow?)
         - Style fields to only look like form inputs when they are empty or have focus
         - trawl the code and remove all console.log() calls (or make debug.log())
+        - There should also be an "archive" function, to move items marked "done" out of plain view.
+          The easiest way I can think of is just add an extra flag (one "done" and one "archive/close")
+          and have 2 buttons in the UI, on [Done!] and one [Done & Archive]. This would probable work in
+          a similar manner to [Delete], including "undo" message.
 
     - DECISIONS/CHOICES TO MAKE
         - URL field: http:// or not? (user input, smart validation (accept both) or don't care?)
@@ -73,7 +74,8 @@ MAJOR_TODOS:
         - Do we really need to split the deck of cards into 3: Todo/Note/Dump?
 
     - NEW FEATURES/OTHER IDEAS:
-        - Break the menu down into smaller parts and call Views in the couch onClick (important when amount of documents get larger)
+        - Break the menu down into smaller parts and call Views in the couch onClick
+            (only important when amount of documents get larger?)
         - Dummy out all tickets (ideally as an example, with information explaining why what is what)
         - Priority needs to be a slider (low)-----|-----(high) with alphabetical values
         - if all that is set is the URL field, pull the content and display that
@@ -92,6 +94,7 @@ MAJOR_TODOS:
         @BUG: Type is not save!? Radio button WTF?!
         @BUG: The very first form isn't loaded (form loads, but without the data) === used a nasty hack (display:none;/.show())
         @BUG: If you try to make a new card after an existing card has been selected, the Creation-Date is no longer available
+        @BUG  The indentation in the dropdown list is incorrect
 
         @DONE: Implement a fix for the "can't nest optgroup bug" (http://stackoverflow.com/questions/1037732/nesting-optgroups-in-a-dropdownlist-select)
         @DONE: Have buildMenu implement (an altered version?) of buildCardList()
@@ -99,6 +102,7 @@ MAJOR_TODOS:
         @DONE: DynaTree instead of accordion
         @DONE: Use a different Couch for Data and App === Made Couch settable.
         @DONE: We need a view in the Couch that returns all the context
+        @DONE: Show revision number
 
         @DECIDE: Creation date vs. Modified date === Added a Creation date
 
@@ -190,10 +194,10 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
 //                self.config = {context:{}};
 //            }
 
+            var $Form = loadForm(p_sDetailSelector, '#details-form')
             loadMenu(true);
             // @TODO: Check hash and/or Read cookie and load appropriate Card to form
             // This would also require action later on to select right place in menu
-            var $Form = loadForm(p_sDetailSelector, '#details-form')
             loadButtons();
     //        _addCardSelect();
     //        _addCardList();
@@ -255,6 +259,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
             $.each(oDocs.rows, function(p_iIndex, p_oDoc) {
                 //@TODO: Find a smarter filter than checking for hash as ID
                 if (p_oDoc.id.length === 32) {
+                    p_oDoc.doc.cardtype = getCardTypeFromDoc(p_oDoc.doc);
                     self.oCards[p_oDoc.id] = p_oDoc.doc;
                     iCount++;
                 }
@@ -267,7 +272,29 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
         return self.oCards;
     }
 
-    function getCardType(p_$Form) {
+    function getCardTypeFromDoc(p_oDoc){
+        var   sType = 'todo'
+            , $Nodes = $('#details-form').find('.required') // @TODO: Shouldn't this use getForm() or loadForm() or something?
+        ;
+console.log($Nodes.length);
+        $Nodes.each(function(){
+            var $this = $(this);
+            console.log($this.attr['name']);//, p_oDoc[$this.attr['name']]);
+            if(sType === 'todo' && $this.hasClass('todo') && !p_oDoc[$this.attr['name']]){
+                // Any empty "T0D0" field! Degrade to "NOTE"
+                sType = 'note';
+            }else if(sType === 'note' && $this.hasClass('note')  && !p_oDoc[$this.attr['name']]){
+                // Any empty "NOTE" fields and the card is degraded to "DUMP"
+                sType = 'dump';
+            }else{
+                // don't care
+            }
+        });
+
+        return sType;
+    }
+
+    function getCardTypeFromForm(p_$Form) {
         var   sType = 'todo'
             , $Nodes = p_$Form.find('.required')
         ;
@@ -286,17 +313,6 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
         });
 
         return sType;
-    }
-
-    function makeId(p_$Form) {
-        debug.log('-- makeId Called: ', p_$Form);
-        var sId = '';
-
-        sId += getCardType(p_$Form).substr(0, 1);
-        sId += '-' + (self.iCardCount + 1);
-
-        debug.log('-- makeId: ', sId);
-        return sId;
     }
 
     function buildCardList(p_sNodeType, p_bRefresh) { // ul>li, optGroup>option, dt/dd?, etc
@@ -378,6 +394,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
                 var $Child = $(
                       '<' + sTag
                     + ' ' + sAttr + '="' + p_oCard._id + '"'
+                    + ' data="addClass: \'cardtype-' + p_oCard.cardtype + '\'"'
                     + '>'
                     + p_oCard.descriptor
                     + '<\/' + sTag + '>'
@@ -576,6 +593,25 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
     }
 
     //////////////////////////// Form Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    function addValueToField(p_$Node, p_sName, p_sValue){
+        if(p_$Node.length < 1){
+            // nothing to do
+        }else if($.inArray(p_$Node.get(0).nodeName.toLowerCase() , ['input','select','textarea']) === -1){
+            var sValue = p_sValue;
+            if(p_sName === '_rev'){
+                sValue = p_sValue.split('-')[0];
+            }
+            p_$Node.html(sValue);
+        }else if(p_$Node.attr('type') === 'radio'){
+            if(p_$Node.val() === p_sValue){
+                p_$Node.attr('checked','checked');
+            }
+        }else{
+            p_$Node.val(p_sValue);
+        }
+        return p_$Node;
+    }
+
     function resetForm(p_$Form) {
 
         function resetSelectOptions(p_$Form) {
@@ -622,21 +658,13 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
         resetForm(p_$Form);
 
         $.each(p_oDoc, function(p_sName, p_sValue) {
-            if (p_$Form.find('[name="' + p_sName + '"]').length > 0) {
+            if (p_$Form.find('[name="' + p_sName + '"], .show_' + p_sName).length > 0) {
 
                 if (p_bParent === false || (p_bParent === true && $.inArray(p_sName, aParentFields) > -1)) {
-                    var $Field = p_$Form.find('[name="' + p_sName + '"]');
-
-                    if($Field.attr('type') === 'radio'){
-                        $Field.each(function(){
-                            var $this = $(this);
-                            if($this.val() === p_sValue){
-                                $this.attr('checked','checked');
-                            }
-                        });
-                    }else{
-                        $Field.val(p_sValue);
-                    }
+                    var $Fields = p_$Form.find('[name="' + p_sName + '"], .show_' + p_sName);
+                    $Fields.each(function(){
+                        addValueToField($(this), p_sName, p_sValue);
+                    });
                 }
             } else {
                 debug.log('Could not find field for "' + p_sName + '".');
@@ -646,8 +674,10 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
         // Add list of Projects to Project Select box
         $('input[name="project"]').val(getProjectName(p_oDoc));
 
-        // Add list of Projects to Project Select box
-        $('input[name="cardtype"]').val(getCardType(p_$Form));
+        // Add card type
+//        addValueToField($('[name="cardtype"]'), 'cardtype', getCardTypeFromForm(p_$Form));
+//        addValueToField($('[name="cardtype"]'), 'cardtype', getCardTypeFromDoc(p_oDoc));
+        addValueToField($('[name="cardtype"]'), 'cardtype', p_oDoc.cardtype);
     }
 
     function loadForm(p_sTargetSelector, p_sSourceSelector) {
