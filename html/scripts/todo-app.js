@@ -1,27 +1,37 @@
 /*
-I think the form should be structured more like this:
+    - Housekeeping
+        - Maintenance
+            - Replace the toilet seat
+======
+Suggested format for Todo.txt = +project @context (A) priority
+ https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format
+ http://todotxt.com/
+ ======
+[description] -> needs to be a verb
+=====
+OPTIONAL FIELDS
 
-	I [want/need] to do [description] for [me/us/them]
 		-- so that [motivation]
 		-- by/on [due date]
-		-- as part of [parent]
         -- within context [context]
         -- more information can be found at [URL] (and [URL])
         -- this has priority (A/B/C/D/E/F/G)
-
-Where all but the first line are optional
 
 --------------------------------------------------------------------------------
 
 MAJOR_TODOS:
      NOW WORKING ON:
+        - Re-Style Form
+            - The form needs to be re-organized and properly styled. See note above.
+            - Hide _id and _rev, only show revision number
+            - All info fields that do not need to beaved to the couch need to *not* be form field but <span> or the like
         --- nothing ---
 
     NEXT:
+        1. Validation
+        2. User (Login/Role/etc.)
         - Create-From-Parent does not set the Parent field!
-        - Hide _id and _rev, only show revision number
         - There is no "DONE!" or "DELETE" card functionality
-        - The form needs to be re-organized and properly styled. See note above.
         - Author needs to be filled in (When users is implemented)
 
     BUGS/YET TO BE DONE:
@@ -34,11 +44,15 @@ MAJOR_TODOS:
         - When a link is added another URL field needs to become available
 
     - BUG IN THE LOGIC
+        - A task can be dependant on more than one other task
+        - form input needs to be HTML Entity encoded!
+        - The indentation in the dropdown list is incorrect
         - When a tickets Descriptor is changed (onSave) the "Create Sub Item" and menu need to be re-rendered (refreshed)
         - When a tickets parent  is  changed   (onSave) the menu needs to be re-rendered (refreshed)
         - When a tickets parent  is  changed   (onSave) the cards Project needs to be re-calculated (refreshed)
 
     - IMPROVEMENTS
+        - Add a from/to person?
         - research CouchDB's "validate_doc_update" (is the information in chapter 7 of the book still accurate?)
           and implement several checks like doc structure (allowed fields) and user (role?)
         - Use markdown for main text (usefull only when displayed as HTML when not edited)
@@ -285,7 +299,8 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
         return sId;
     }
 
-    function buildCardList(p_sNodeType) { // ul>li, optGroup>option, dt/dd?, etc
+    function buildCardList(p_sNodeType, p_bRefresh) { // ul>li, optGroup>option, dt/dd?, etc
+        p_bRefresh = p_bRefresh || false;
 
         var sTag, sGroupTag, sAttr;
 
@@ -327,22 +342,25 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
                 // add same level as containing tag
                 p_$Node.attr('level', iParentLevel)
             }else{
-                p_$Node.attr('level', iParentLevel + 1)
+                p_$Node.attr('level', iParentLevel + 1);
                 if(p_bAddTextIndent === true){
                     var sText = '';
                     // @TODO: Nicer formatting, ASCII-Art style?
-                    if(p_$Node.attr('level') > 0){
-                        while (sText.length < p_$Node.attr('level')) {
-    //                        sText += '&#8739;'; // DIVIDES
-                            sText += '&nbsp;';
+                    var   iLevel = parseInt(p_$Node.attr('level'), 10)
+                        , sSpaceChar = '&nbsp;&nbsp;'  // '&#8739;'; // DIVIDES
+                    ;
+                    if(iLevel > 0){
+                        iLevel = iLevel * sSpaceChar.length;
+                        var sSpaces = '';
+                        while (sSpaces.length < iLevel) {
+                            sSpaces += sSpaceChar;
                         }
-                        sText += '&#8735;'; // RIGHT ANGLE
-    //                }else{
-    //                    sText += '&nbsp;';
-    //                    sText += '&#8866;'; // RIGHT TACK
+                        sText += sSpaces + '&#8735;'; // RIGHT ANGLE
+//                    }else{
+//                        sText += sSpaces + '&#8866;'; // RIGHT TACK
                     }
+                    p_$Node.prepend(sText);
                 }
-                p_$Node.prepend(sText);
             }
 
             p_$Node.children().each(function(){
@@ -356,7 +374,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
             var $Tree = emptyGroup();
             var $Cave = emptyGroup();
 
-            $.each(getCards(), function(p_sIndex, p_oCard) {
+            $.each(getCards(p_bRefresh), function(p_sIndex, p_oCard) {
                 var $Child = $(
                       '<' + sTag
                     + ' ' + sAttr + '="' + p_oCard._id + '"'
@@ -494,6 +512,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
 
     //////////////////////////// Menu Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     function loadMenu(p_bRefresh) {
+        p_bRefresh = p_bRefresh || false;
         debug.log('-- loadMenu Called: ', p_bRefresh);
 
         function attachLinks(p_$CardList){
@@ -502,7 +521,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
                     , $Children = $this.children().detach()
                     , sHref = '#/todo-app/' + $this.attr('class')
                     , $a = $('<a href="' + sHref + '"><\/a>')
-                        .text($this.get(0).firstChild.nodeValue)
+                        .text( $this.get(0).firstChild?$this.get(0).firstChild.nodeValue:'--?--' )
                         .click(menuLinkClick)
                 ;
 
@@ -513,16 +532,30 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
             });
         }
 
-        var $CardList = buildCardList('list');
+        var $CardList = buildCardList('list', p_bRefresh);
         attachLinks($CardList);
         self.menu = $CardList;
-        $(sOverviewSelector).html(self.menu);
+        $(sOverviewSelector).html(self.menu).dynatree({
+              persist: true
+//            , autoCollapse: true
+            , onClick: menuLinkClick
+        });
 
-          $(sOverviewSelector).dynatree({
-                persist: true
-              , autoCollapse: true
-              , onClick: menuLinkClick
-          });
+        // Add "Expand/Collapse all" link
+        var $e = $('<button>Expand all<\/button>').click(function(){
+            $(sOverviewSelector).dynatree('getRoot').visit(function(node){
+                node.expand(true);
+            });
+        });
+        var $c = $('<button>Collapse all<\/button>').click(function(){
+            $(sOverviewSelector).dynatree('getRoot').visit(function(node){
+                node.expand(false);
+            });
+        });
+        $(sOverviewSelector).prepend(
+            $('<div></div>').addClass('utility-bar').append($e,'<span> / </span>',$c)
+        );
+
         function accordion(){
             $(sOverviewSelector).find('ul').accordion({
     //            collapsible: true
@@ -787,29 +820,31 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
      * by referencing them by name...
      */
     function menuLinkClick(p_oNode, p_oEvent){
-            p_oEvent.preventDefault();
+//            p_oEvent.preventDefault();
+        if(p_oEvent.target.nodeName === 'A'){
+
             var oFormWrapper = loadForm(p_sDetailSelector, '#details-form');
             // Get doc from stack using ID from hash
             // @TODO: Validate this works in other browsers than Chrome...
-
 //            var id = p_oEvent.currentTarget.hash.substring('#/todo-app/'.length); //regular click event
             var id = p_oNode.span.children[3].hash.substring('#/todo-app/'.length); // DynaTree Click Event
             var i = 0;
 
             (function() {
-                if (i > 3000){// Timeout after 3 seconds
-                    debug.error('-- Click Event Timed out.', p_oNode);
-                }else if (bFormLoaded === true){//oFormWrapper && oFormWrapper.length && oFormWrapper.length > 0) {
-                        $('#details-form').show();
-                        oFormWrapper[0].reset();
+                    if (i > 3000){// Timeout after 3 seconds
+                        debug.error('-- Click Event Timed out.', p_oNode);
+                    }else if (bFormLoaded === true){//oFormWrapper && oFormWrapper.length && oFormWrapper.length > 0) {
+                            $('#details-form').show();
+                            oFormWrapper[0].reset();
 
-                        self.oCurrentCard = getCards()[id];
-                        populateForm(oFormWrapper, self.oCurrentCard);
-                } else {
-                    i++;
-                    setTimeout(arguments.callee)
-                }
-            })();
+                            self.oCurrentCard = getCards()[id];
+                            populateForm(oFormWrapper, self.oCurrentCard);
+                    } else {
+                        i++;
+                        setTimeout(arguments.callee)
+                    }
+                })();
+        }
     }
 
     //////////////////////////// Proof of Concept \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\

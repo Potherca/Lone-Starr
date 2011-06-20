@@ -5,10 +5,88 @@
 </head>
 <body>
     <form action="" method="post" id="details-form" style="display:none">
+        <input type="hidden" name="_id" value="" class="small">
+        <input type="hidden" name="_rev" value="" class="small">
+    <p>
+        In order to
+        <select name="parent" class="todo note percent_30 cardlist">
+            <option value="" selected="selected">Select a Parent</option>
+        </select>
+
+        <span class="type-container">
+            I/we
+            <label>
+                <input type="radio" name="type" value="want" class="todo required tiny">
+                Want
+            </label>
+
+            <label>
+                <input type="radio" name="type" value="need" class="todo required tiny">
+                Need
+            </label>
+        </span>
+        to
+        <input type="text" name="descriptor" value="" class="todo note required percent_30" placeholder="Short Description">
+    </p>
+
+        <textarea rows="" cols="" name="main-text"  class="todo note required percent_40" placeholder="Long Description..."></textarea>
+
         <fieldset>
+            <label>Author:
+                <input type="text" name="author" readonly="readonly" value="" class="todo note small" placeholder="Author ...">
+            </label>
 
-            <!--<input type="text" name="id" value="" class="todo note required tiny" placeholder="ID" readonly="readonly">-->
+            <label>Project:
+                <input type="text" name="project" class="todo small" readonly="readonly" value="" placeholder="Project">
+            </label>
 
+            <label>Creation Date:
+                <input type="text" name="creation-date" readonly="readonly" value="" class="todo note" placeholder="Created on ...">
+            </label>
+
+            <label>Modified Date:
+                <input type="text" name="modified-date" readonly="readonly" value="" class="todo note" placeholder="Modified on ...">
+            </label>
+
+            <label>
+                CardType:
+                <input type="text" name="cardtype" value="" placeholder="cardtype" readonly="readonly" class="tiny">
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <label>
+                so that
+                <textarea rows="" cols="" name="motivation"  class="todo required percent_30" placeholder="Motivation"></textarea>
+            </label>
+            <label>
+                by/on
+                <input type="date" name="schedule-date" value="" class="todo small percent_30" placeholder="Scheduled for ...">
+            </label>
+            <label>
+                within context
+                <input type="text" name="context" value="" class="todo note percent_30" placeholder="Add Context">
+            </label>
+            <label>
+                more information can be found at [URL] (and [URL])
+                <input type="url" name="links" value="" class="todo note percent_30" placeholder="Add relevant URLs">
+            </label>
+            <label>
+                this has priority
+                <input type="text" name="priority" value="" class="todo  percent_30" placeholder="A/B/C/D/E/F/G">
+            </label>
+            <label>
+                but not before finishing
+                <select name="depends-on" class="todo small cardlist percent_40">
+                    <option value="" selected="selected">a task this task depends on ... </option>
+                </select>
+            </label>
+        </fieldset>
+        <button type="submit" class="tiny">Save</button>
+    </form>
+
+    <form action="" method="post" id="details-form-v1" style="display:none">
+        <fieldset>
             <select name="parent" class="todo note small cardlist">
                 <option value="" selected="selected">Select a Parent</option>
             </select>

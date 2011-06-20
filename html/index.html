@@ -16,12 +16,14 @@
     <script src="scripts/jquery-1.6.1.min.js"></script>
     <script src="scripts/jquery-ui-1.8.13.min.js"></script>
     <script src="scripts/couch.js"></script>
-    <script src="scripts/todo-app.js"></script>
+    <!--<script src="/_utils/script/jquery.dialog.js"></script>-->
+    <!--<script src="/_utils/script/jquery.couch.js"></script>-->
 
 
     <script src="scripts/jquery.cookie.js" type="text/javascript"></script>
     <script src="scripts/jquery.dynatree/jquery.dynatree.js" type="text/javascript"></script>
 
+    <script src="scripts/todo-app.js"></script>
     <script type="text/javascript">
         Todo.load(
               '#overview'
@@ -35,22 +37,15 @@
 <body id="body">
 
     <form id="create-new-item-form" method="get" action="forms.html">
-        <button type="submit" class="tiny" name="create-new-item" value="true">Create New Item</button>
+        <button type="submit" class="" name="create-new-item" value="true">Create New Item</button>
         <!--<button type="submit" class="tiny" name="create-new-child" value="true" disabled="disabled">Create Sub- Item</button>-->
     </form>
 
-    <section id="overview">
-        <ul>
-            <li>Tags might have to differ between todo & notes?</li>
-            <li><a href="https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format">Suggested format</a> for <a href="http://todotxt.com/">Todo.txt
-</a> = +project @context (A) priority </li>
-        </ul>
-
-    </section>
+    <section id="overview"></section>
 
     <section id="detail"></section>
 
-<div id="debug"
+<div id="debug" style="display:none;"
         onclick="
             var sAnswer = window.prompt('What would you like to debug?\n\n Leave empty or Cancel to stop any running debugger');
             if(sAnswer){

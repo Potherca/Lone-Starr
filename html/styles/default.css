@@ -59,21 +59,23 @@
     }
 /********( Base Elements )*****************************************************/
     body {
-        background-color: #EEE;
-        width: 65em;
-        margin: 0 auto;
-        position: relative;
+        background-color: #EEF;
+        display: table;
     }
 
     section {
         background-color: #FFF;
         border: 1px solid black;
         border-radius: 1em;
-        float: left;
-        height: 90%;
-        margin: 1em;
-        min-height: 25em;
+        box-shadow: 1em 1em 1em #333;
+        display: table-cell;
+        height: auto;
         overflow: auto;
+        padding: 1em;
+        position: relative;
+        top: 3em;
+        width: auto;
+        font-size: 80%;
     }
 
     ul {
@@ -87,27 +89,63 @@
     optgroup {
         margin-left: 1em;
     }
+
+    hr {
+        clear:both;
+    }
 /********( ? )*****************************************************************/
     #overview {
-        font-size: 80%;
+        background-color: rgba(25, 25, 25, 0.8);
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        left: -3em;
         line-height: 0.8em;
-        padding: 1em 0;
-        width: 18em;
+        margin-right: 0;
+        padding-left: 1.5em;
+        z-index: 1;
+    }
+    #overview .dynatree-container {
+        background-color: transparent;
+        border: none;
+        margin-left: 1.5em;
+    }
+
+    #overview .dynatree-container a {
+        color: #FFF;
+        border-radius: 0.5em;
+        padding: 3px;
+        margin-left: 0;
+        margin-right: 0;
+        white-space: normal;
+    }
+    #overview .dynatree-container a:hover {
+        background-color: #B8D6FB;
     }
 
     #detail {
-        width: 40em;
+        right: 1.5em;
+        width: 100%;
     }
 
     #create-new-item-form {
-        display: inline;
-        height: 1em;
-        position: relative;
+        position: absolute;
+        width: 100%;
+        white-space: nowrap;
+        font-size: 80%;
     }
 
     #document-list ul {
         /*margin-left: 0;*/
     }
+
+    #create-new-item-form button code {
+    border: 1px solid black;
+    padding: 0.5em;
+    margin: 0.2em;
+    background-color: white;
+}
+
+
 /********( Detail Form )*******************************************************/
 form {
     position: relative;
@@ -124,15 +162,13 @@ form {
     form input
     , form textarea
     , form select
-    , form p
+    /*, form p*/
     , form button
     {
         border-radius: 1em;
-        font-size: 80%;
-        margin: 0.5em 0 0.5em 3%;
+        margin: 0.5em;
         outline: none;
         padding-left: 0.4em;
-        width: 94%;
 
         border: 2px solid;
         border-color: gray lightgray lightgray gray;
@@ -140,7 +176,6 @@ form {
 
     form label {
         display: block;
-        font-size: 80%;
         width: 100%;
     }
     form p label {
@@ -193,6 +228,10 @@ form {
         height: 1em;
     }
 
+    label input:checked[type="radio"] {
+        background: red;
+    }
+
     form [name="main-text"] {
         height: 14em;
     }
@@ -222,6 +261,11 @@ form {
         min-width: 22.5%;
         width: auto;
     }
+
+    #body button[name="create-new-item"] {
+        float: right;
+    }
+
     /********( Helper Classes )************************************************/
     form .medium {
         width: 67.5%;
@@ -233,6 +277,41 @@ form {
 
     form .tiny {
         width: 22.5%;
+    }
+
+
+    form .percent_60 {
+        width: 60%;
+    }
+    form .percent_50 {
+        width: 50%;
+    }
+    form .percent_40 {
+        width: 40%;
+    }
+    form .percent_30 {
+        width: 30%;
+    }
+    form .percent_25 {
+        width: 25%;
+    }
+    form .percent_20 {
+        width: 20%;
+    }
+    form .percent_17 {
+        width: 17.5%;
+    }
+    form .percent_15 {
+        width: 15;
+    }
+    form .percent_12 {
+        width: 12.5;
+    }
+    form .percent_10 {
+        width: 10%;
+    }
+    form .percent_5 {
+        width: 5%;
     }
 
     #body .ui-datepicker {
@@ -335,20 +414,29 @@ form {
         margin-left: 0;
     }
 
-/********( EOF )***************************************************************/
+    #overview .utility-bar {
+        position: relative;
+        right: 1em;
+        color: #69F;
+        text-align: right;
+        white-space: nowrap;
+        margin-left: 4em;
+    }
 
-#create-new-item-form button code {
-    border: 1px solid black;
-    padding: 0.5em;
-    margin: 0.2em;
-    background-color: white;
-}
+        #overview .utility-bar button {
+            color: #69F;
+            cursor: pointer;
+        }
+        #overview .utility-bar button:hover {
+            color: #9CF;
+        }
+/********( EOF )***************************************************************/
 
 #debug {
     border: 1px solid black;
-    position: absolute;
-    right: -10%;
-    top: 1em;
+    position: fixed;
+    right: 0;
+    top: 0;
     background: rgba(255,255,255,0.8);
     opacity: 0.7;
     border-radius: 1em;
