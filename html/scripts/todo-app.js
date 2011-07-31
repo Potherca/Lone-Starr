@@ -1,112 +1,10 @@
 /*
-    - Housekeeping
-        - Maintenance
-            - Replace the toilet seat
-======
-Suggested format for T0d0.txt = +project @context (A) priority
- https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format
- http://todotxt.com/
-======
+	There are 3 separate possible views in regards to tickets:
+	1. Only "open" tickets 		/todo-app/_design/open-items/_view/open-items
+	2. Only "closed" tickets	/todo-app/_design/open-items/_view/closed-items
+	3. Both
 
-[description] -> needs to be a verb
-
-.------------------------------------------------------------------------------.
-|                   ALL OF THESE NEED TO BE MOVED TO GITHUB                    |
-'------------------------------------------------------------------------------'
-
-MAJOR_TODOS:
-     NOW WORKING ON:
-        - Use different Icons based on CardType (add icons to CSS and fix bug in getCardType function)
-        - Re-Style Form (Layout/Design)
-        - readonly-fields, like creation date/modified date/author/etc (things that are calculated in the DB)
-          need to be span/dl. For this to work, logic needs to be added to Couch Update Views
-        --- nothing ---
-
-    NEXT:
-         1. Use CouchDb User functionality (Login/Role/etc.)
-         2. Validation
-        - Create-From-Parent does not set the Parent field!
-        - There is no "DONE!" or "DELETE" card functionality
-        - Author needs to be filled in (When users is implemented)
-
-    BUGS/YET TO BE DONE:
-    - PROJECT MANAGEMENT
-        - Cleanup the JS files by moving stuff to Barf and include it using git-subtree
-        - Several things could possible be moved to the server, like getting a cards type?
-
-    - USABILITY ISSUE
-        - CardType needs to be updated on Edit, not on Save (hijack validation)
-        - When a link is added a new field needs to become available
-        - When a depency is added a new field needs to become available
-
-    - BUG IN THE LOGIC
-        - Currently all items in the menu are marked as "T0D0" because either the form
-          or the Cards are not loaded before the logic that calculates the CardType is triggered.
-        - A task can be dependant on more than one other task
-        - form input needs to be HTML Entity encoded, otherwise the descriptor won't appear in the menu if it contains a special character
-        - When a tickets Descriptor is changed (onSave) the "Create Sub Item" and menu need to be re-rendered (refreshed)
-        - When a tickets parent  is  changed   (onSave) the menu needs to be re-rendered (refreshed)
-        - When a tickets parent  is  changed   (onSave) the cards Project needs to be re-calculated (refreshed)
-
-    - IMPROVEMENTS
-        - Add a from/to person?
-        - research CouchDB's "validate_doc_update" (is the information in chapter 7 of the book still accurate?)
-          and implement several checks like doc structure (allowed fields) and user (role?)
-        - Use markdown for main text (usefull only when displayed as HTML when not edited)
-        - Grab title from the first line, instead of having a separate input field
-        - Wrap titles in tree
-        - Disable the save button until a field is altered
-        - Use Dynatree drag'n'drop to change parent
-        - Have all sub-items be collapsed by default
-        - Have the descriptor (at the very least) be required (=== implement validation, both in Client and on Couch)
-        - Fix textarea sizes (and maybe implement an autogrow?)
-        - Style fields to only look like form inputs when they are empty or have focus
-        - trawl the code and remove all console.log() calls (or make debug.log())
-        - There should also be an "archive" function, to move items marked "done" out of plain view.
-          The easiest way I can think of is just add an extra flag (one "done" and one "archive/close")
-          and have 2 buttons in the UI, on [Done!] and one [Done & Archive]. This would probable work in
-          a similar manner to [Delete], including "undo" message.
-
-    - DECISIONS/CHOICES TO MAKE
-        - URL field: http:// or not? (user input, smart validation (accept both) or don't care?)
-        - Do we need a "schedule-time" to accompany "schedule-date"? (For appointments, etc.) We could use a time Heatmap
-        - Shouldn't we use event watchers for the (read-only) fields the are auto-generated?
-        - Do we really need to split the deck of cards into 3: Todo/Note/Dump?
-
-    - NEW FEATURES/OTHER IDEAS:
-        - Break the menu down into smaller parts and call Views in the couch onClick
-            (only important when amount of documents get larger?)
-        - Dummy out all tickets (ideally as an example, with information explaining why what is what)
-        - Priority needs to be a slider (low)-----|-----(high) with alphabetical values
-        - if all that is set is the URL field, pull the content and display that
-          instead of the form (collapse/hide the form and add [Show] button)
-        - Instead of one doc per task, have one doc for all tasks, using the todo.txt syntax?
-        - For multi-user support, why not encode the data using the password as a salt?
-        - Edit *enitire* task as plain text, replacing the form with one-big-ass textarea for the user
-          to edit (ala Futon interface?) just as if editing "todo.txt"
-        - The DB name could be stored in a doc. On first-run (doc doesn't exist) we could show a form asking for values.
-          Anything that is currently hardcoded could be set as default, allowing new users to override values.
-
-    DONE:
-        @BUG: radio buttons value is not saved
-        @BUG: getCardType is flawed, it always returns "dump"
-        - Accordion menu highlighting (what has focus, what is visible in Detail view) isn't clear
-        @BUG: Type is not save!? Radio button WTF?!
-        @BUG: The very first form isn't loaded (form loads, but without the data) === used a nasty hack (display:none;/.show())
-        @BUG: If you try to make a new card after an existing card has been selected, the Creation-Date is no longer available
-        @BUG  The indentation in the dropdown list is incorrect
-
-        @DONE: Implement a fix for the "can't nest optgroup bug" (http://stackoverflow.com/questions/1037732/nesting-optgroups-in-a-dropdownlist-select)
-        @DONE: Have buildMenu implement (an altered version?) of buildCardList()
-        @DONE: Mark type of card (T0d0/Note/Dump)
-        @DONE: DynaTree instead of accordion
-        @DONE: Use a different Couch for Data and App === Made Couch settable.
-        @DONE: We need a view in the Couch that returns all the context
-        @DONE: Show revision number
-
-        @DECIDE: Creation date vs. Modified date === Added a Creation date
-
-*/
+ */
 
 /**
  * JavaScript Debug - v0.4 - 6/22/2010
@@ -248,24 +146,37 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
         $('#create-new-item-form [name="create-new-child"]').click(handler);
     }
 
-    function getCards(p_bRefresh) {
-        p_bRefresh = p_bRefresh || false;
+    function getCards(p_bRefresh, p_oOptions) {
+        var bRefresh = p_bRefresh || false;
+        var oOptions = p_oOptions || {};
 
-        if (p_bRefresh === true || typeof self.oCards === 'undefined') {
-            var oDocs = oCouch.allDocs({"include_docs":true});
-            var iCount = 0;
-            self.oCards = {};
+		if(typeof oOptions.sFilter === 'undefined'){
+			oOptions.sFilter = 'closed';
+		}else{
+			// @TODO: Validate sFilter is a valid filter name? Or let try/catch handle it?
+		}
 
-            $.each(oDocs.rows, function(p_iIndex, p_oDoc) {
-                //@TODO: Find a smarter filter than checking for hash as ID
-                if (p_oDoc.id.length === 32) {
-                    p_oDoc.doc.cardtype = getCardTypeFromDoc(p_oDoc.doc);
-                    self.oCards[p_oDoc.id] = p_oDoc.doc;
-                    iCount++;
-                }
-            });
+        if (bRefresh === true || typeof self.oCards === 'undefined') {
+			var oResponse;
 
-            self.iCardCount = iCount;
+			try {
+				oResponse = oCouch.view('app/cards%2F' + oOptions.sFilter);
+			} catch(e) {
+				oResponse = e;
+			}
+
+			debug.log('Response for Cards: ', oResponse);
+
+			self.oCards = {};
+			if (oResponse) {
+				$.each(oResponse.rows, function(p_iIndex, p_oRow){
+					p_oRow.key.cardtype = getCardTypeFromDoc(p_oRow.key);
+					self.oCards[p_oRow.id] = p_oRow.key;
+				});
+			}
+
+            self.iCardCount = oResponse.total_rows || 0;
+
             debug.log('-- getCards -- Loaded from DB: ', self.oCards);
         }
 
@@ -276,10 +187,10 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
         var   sType = 'todo'
             , $Nodes = $('#details-form').find('.required') // @TODO: Shouldn't this use getForm() or loadForm() or something?
         ;
-console.log($Nodes.length);
+//console.log($Nodes.length);
         $Nodes.each(function(){
             var $this = $(this);
-            console.log($this.attr['name']);//, p_oDoc[$this.attr['name']]);
+//            console.log($this.attr['name']);//, p_oDoc[$this.attr['name']]);
             if(sType === 'todo' && $this.hasClass('todo') && !p_oDoc[$this.attr['name']]){
                 // Any empty "T0D0" field! Degrade to "NOTE"
                 sType = 'note';
@@ -436,6 +347,7 @@ console.log($Nodes.length);
 
             if($Cave.children().length > 0){
                 debug.warn('-- buildCardList: Orphan Card Found! ', $Cave.children());
+				$Cave.children().appendTo($Tree);
             }
 
             return $Tree;
@@ -452,9 +364,9 @@ console.log($Nodes.length);
             case 'select':
                 addLevel($Tree.children(), true);
                 /*
-                 * Untill HTML properly selects nested optgroups (or a working UI
-                 * plugin is found, we simple flatten the list, adding indents for
-                 * each level a item is at.
+                 * Until HTML properly selects nested optGroups (or a working UI
+                 * plugin is found, we simple flatten the list, adding indents
+                 * for each level an item is at.
                  */
                 $Tree.find(sGroupTag).each(function(p_iIndex, p_oNode){
                     var $Node = $(p_oNode);
@@ -498,8 +410,8 @@ console.log($Nodes.length);
 
             if (oResponse) {
                 // Sort all Contexts into Categories
-                $.each(oResponse.rows, function(p_iIndex, p_oContext){
-                    var aContextKeys = p_oContext.key.split(':',2);
+                $.each(oResponse.rows, function(p_iIndex, p_oRow){
+                    var aContextKeys = p_oRow.key.split(':',2);
                     if(aContextKeys.length === 1){
                         // No Category found
                         aContextKeys[1] = aContextKeys[0];
@@ -671,6 +583,21 @@ console.log($Nodes.length);
             }
         });
 
+		if(typeof p_oDoc['completion-date'] !== 'undefined'){
+			console.log('completion-date')
+			// show completion date and hide the "Close" button,
+			$('.close-button').hide();
+			p_$Form.find('[name="completion-date"]').show();
+			//@TODO: disable the form? (should be text-only anyway, until [edit] clicked)
+		}else{
+			console.log('no completion-date')
+			// show the "Close" button and clear the completion-date form field
+			$('.close-button').show();
+			p_$Form.find('[name="completion-date"]').hide();
+		}
+
+//		console.warn($Close.val());
+
         // Add list of Projects to Project Select box
         $('input[name="project"]').val(getProjectName(p_oDoc));
 
@@ -831,6 +758,22 @@ console.log($Nodes.length);
                 }
             }
         );
+
+		// Add "Close" button
+		$Close = p_$Form.find('[name="completion-date"]');
+		$Close.parent().hide();
+
+		// @TODO: The close logic can be moved server-side by adding a name/value
+		// 		  to a submit button and fishing it out and adding a date to the record
+		var foo = $('<span class="button close-button">Done!</span>')
+		.bind('click', function(event){
+			event.preventDefault();
+			// set value of hidden input to current timeDate
+			$Close.val(new Date().toString()).parents('form').submit();
+			$(this).hide();
+		})
+		.appendTo(p_$Form)
+		;
 
         return p_$Form;
     }
