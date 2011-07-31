@@ -35,6 +35,12 @@
         "context": {
             "map": "function(doc) {\n  if (doc.context) {\n    var context = doc.context.split(/,\\s*/g);\n    for(var index in context){\n      if(context[index] !== ''){\n        emit(context[index], 1);\n      }\n    }\n  }\n}\n\n",
             "reduce": "function(keys, values) {\n  return sum(values);\n}\n"
-        }
+        },
+	   "cards/closed": {
+		   "map": "function(doc) {\n  if (typeof doc['completion-date'] !== 'undefined') { // @TODO: Check if value actually a date\n    emit(doc, doc['completion-date']);\n  }\n}"
+	   },
+	   "cards/open": {
+		   "map": "function(doc) {\n  if (typeof doc['completion-date'] === 'undefined') {\n    emit(doc, 1);\n  }\n}"
+	   }
     }
 }
