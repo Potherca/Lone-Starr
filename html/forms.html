@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
 <head>
     <title>Available Forms</title>
 </head>
+
 <body>
     <form action="" method="post" id="details-form" style="display:none">
         <input type="hidden" name="_id" value="" class="small">
@@ -51,6 +51,10 @@
 
         </fieldset>
 
+		<label>Completion Date:
+			<input type="text" name="completion-date" value="" class="todo" placeholder="Closed on ...">
+		</label>
+
         <fieldset>
             <label>
                 so that
@@ -81,76 +85,4 @@
         </fieldset>
         <button type="submit" class="tiny">Save</button>
     </form>
-
-    <form action="" method="post" id="details-form-v1" style="display:none">
-        <fieldset>
-            <select name="parent" class="todo note small cardlist">
-                <option value="" selected="selected">Select a Parent</option>
-            </select>
-
-            <input type="text" name="descriptor" value="" class="todo note required" placeholder="Title/Summary/Descriptor">
-
-            <textarea rows="" cols="" name="main-text"  class="todo note required" placeholder="Enter Text..."></textarea>
-
-            <input type="text" name="context" value="" class="todo note" placeholder="Add Context">
-
-            <input type="url" name="links" value="" class="todo note" placeholder="Add relevant URLs">
-        </fieldset>
-        <fieldset>
-
-            <input type="text" name="_id" value="" class="small">
-            <input type="text" name="_rev" value="" class="small">
-
-            <label>Author:
-                <input type="text" name="author" readonly="readonly" value="" class="todo note small" placeholder="Author ...">
-            </label>
-
-            <label>Project:
-                <input type="text" name="project" class="todo small" readonly="readonly" value="" placeholder="Project">
-            </label>
-
-            <label>Creation Date:
-                <input type="text" name="creation-date" readonly="readonly" value="" class="todo note" placeholder="Created on ...">
-            </label>
-
-            <label>Modified Date:
-                <input type="text" name="modified-date" readonly="readonly" value="" class="todo note" placeholder="Modified on ...">
-            </label>
-
-            <label>
-                CardType:
-                <input type="text" name="cardtype" value="" placeholder="cardtype" readonly="readonly" class="tiny">
-            </label>
-        </fieldset>
-        <fieldset>
-            <p class="type-container">
-                Type:
-                <input id="type_1" type="radio" name="type" value="want" class="todo required tiny">
-                <label for="type_1">Want</label>
-
-                <input id="type_2" type="radio" name="type" value="need" class="todo required tiny">
-                <label for="type_2">Need</label>
-            </p>
-
-            <select name="category" class="todo required small">
-                <option value="" selected="selected">Category ... </option>
-                <option value="me">Me</option>
-                <option value="family">Family</option>
-                <option value="work">Work</option>
-            </select>
-
-            <textarea rows="" cols="" name="motivation"  class="todo required" placeholder="Motivation"></textarea>
-
-            <select name="depends-on" class="todo small cardlist">
-                <option value="" selected="selected">Depends on ... </option>
-            </select>
-
-            <input type="date" name="schedule-date" value="" class="todo small" placeholder="Scheduled for ...">
-
-            <input type="text" name="priority" value="" class="todo tiny" placeholder="Priority">
-        </fieldset>
-
-        <button type="submit" class="tiny">Save</button>
-    </form>
 </body>
-</html>
