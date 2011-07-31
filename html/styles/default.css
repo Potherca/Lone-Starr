@@ -122,6 +122,11 @@
         background-color: #B8D6FB;
     }
 
+    #overview .dynatree-focused a {
+        color: #000;
+    }
+
+
     #detail {
         right: 1.5em;
         width: 100%;
@@ -481,4 +486,33 @@ form {
 
 #debug:hover ul code {
     font-family: monospace;
+}
+
+
+.button:hover {
+	background-color: #CCC;
+}
+
+.button:active{
+	border-bottom-width: 1px;
+	border-right-width: 1px;
+}
+
+.button {
+	background-color: #aaa;
+    border: 2px solid;
+	border-color: gray lightgray lightgray gray;
+	border-color: lightgray gray gray lightgray;
+	border-radius: 1em;
+	display: block;
+	outline: none;
+	padding-left: 0.4em;
+	text-align: center;
+	width: 7%;
+}
+
+.close-button {
+	position: absolute;
+	top:0;
+	right: 0;
 }
