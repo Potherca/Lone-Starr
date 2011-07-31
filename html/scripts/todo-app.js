@@ -2,7 +2,7 @@
 	There are 3 separate possible views in regards to tickets:
 	1. Only "open" tickets 		/todo-app/_design/open-items/_view/open-items
 	2. Only "closed" tickets	/todo-app/_design/open-items/_view/closed-items
-	3. Both
+	3. Both                     just get all docs and filter out those without 32 character IDs
 
  */
 
@@ -151,7 +151,7 @@ var Todo = function(p_sOverviewSelector, p_sDetailSelector, p_sCouch) {
         var oOptions = p_oOptions || {};
 
 		if(typeof oOptions.sFilter === 'undefined'){
-			oOptions.sFilter = 'closed';
+			oOptions.sFilter = 'open';
 		}else{
 			// @TODO: Validate sFilter is a valid filter name? Or let try/catch handle it?
 		}
