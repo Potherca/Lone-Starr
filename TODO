@@ -1,0 +1,111 @@
+======
+Suggested format for T0d0.txt = +project @context (A) priority
+ https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format
+ http://todotxt.com/
+======
+
+[description] -> needs to be a verb
+
+.------------------------------------------------------------------------------.
+|                   ALL OF THESE NEED TO BE MOVED TO GITHUB                    |
+'------------------------------------------------------------------------------'
+
+MAJOR_TODOs:
+     NOW WORKING ON:
+        - There is no "DONE!" or "DELETE" card functionality
+        - Use different Icons based on card-type (add icons to CSS and fix bug in getcard-type function)
+        - Re-Style Form (Layout/Design)
+        - readonly-fields, like creation date/modified date/author/etc (things that are calculated in the DB)
+          need to be span/dl. For this to work, logic needs to be added to Couch Update Views
+        --- nothing ---
+
+    NEXT:
+        - Write a mission statement/todo.md
+         1. Use CouchDb User functionality (Login/Role/etc.)
+         2. Validation
+        - Create-From-Parent does not set the Parent field!
+        - When users is implemented Author needs to be filled in
+
+    BUGS/YET TO BE DONE:
+    - PROJECT MANAGEMENT
+        - Cleanup the JS files by moving stuff to Barf and include it using git-subtree
+        - Several things could possible be moved to the server, like getting a cards type, setting dates etc.
+
+    - USABILITY ISSUE
+        - card-type needs to be updated on Edit, not on Save (hijack validation)
+        - When a link is added a new field needs to become available
+        - When a dependency is added a new field needs to become available
+        - On form submit, disable the form until ajax request returns.
+
+    - BUG IN THE LOGIC
+        - when a card has been selected and "create new" is clicked, the Revision and card-type fields don't get reset.
+        - When a card is saved the revision (and card-type?) don't get updated
+        - Currently all items in the menu are marked as "T0D0" because either the form
+          or the Cards are not loaded before the logic that calculates the card-type is triggered.
+        - A task can be dependant on more than one other task! (@see: When a dependency is added a new field needs to become available)
+        - form input needs to be HTML Entity encoded, otherwise the descriptor won't appear in the menu if it contains a special character
+        - When a cards Descriptor is changed (onSave) the "Create Sub Item" and menu need to be re-rendered (refreshed)
+        - When a cards parent  is  changed   (onSave) the menu needs to be re-rendered (refreshed)
+        - When a cards parent  is  changed   (onSave) the cards Project needs to be re-calculated (refreshed)
+
+    - IMPROVEMENTS
+        - Study the differences between couch.js and $.couch.js to see if we can't use $.couch, as that ships with futon
+        - Add a from/to person?
+        - research CouchDB's "validate_doc_update" (is the information in chapter 7 of the book still accurate?)
+          and implement several checks like doc structure (allowed fields) and user (role?)
+        - Use markdown for main text (useful only when displayed as HTML when not edited)
+        - Grab title from the first line, instead of having a separate input field
+        - Wrap titles in tree
+        - Disable the save button until a field is altered
+        - Use Dynatree drag-n-drop to change parent
+        - Have all sub-items be collapsed by default
+        - Have the descriptor (at the very least) be required (=== implement validation, both in Client and on Couch)
+        - Fix textarea sizes (and maybe implement an auto-grow?)
+        - Style fields to only look like form inputs when they are empty or have focus
+        - trawl the code and remove all console.log() calls (or make debug.log())
+        - There should also be an "archive" function, to move items marked "done" out of plain view.
+          The easiest way I can think of is just add an extra flag (one "done" and one "archive/close")
+          and have 2 buttons in the UI, on [Done!] and one [Archived]. This would probable work in
+          a similar manner to [Delete], including "undo" message.
+
+    - DECISIONS/CHOICES TO MAKE
+        - URL field: http:// or not? (user input, smart validation (accept both) or don't care?)
+          I think the best bet is to allow no protocol and add http:// by default.
+          That way it is still possible to add https or other protocals, but nothing
+            breaks if the protocol is emitted.
+        - Do we need a "schedule-time" to accompany "schedule-date"? (For appointments, etc.) We could use a time Heatmap
+        - Shouldn't we just use event watchers for all (read-only) fields the are auto-generated?
+        - Do we really need to split the deck of cards into 3: Todo/Note/Dump?
+
+    - NEW FEATURES/OTHER IDEAS:
+        - Break the menu down into smaller parts and call Views in the couch onClick
+            (only important when amount of documents get larger?)
+        - Dummy out all cards (ideally as an example, with information explaining why what is what)
+        - Priority needs to be a slider (low)-----|-----(high) with alphabetical values
+        - if all that is set is the URL field, pull the content and display that
+          instead of the form (collapse/hide the form and add [Show] button)
+        - Instead of one doc per task, have one doc for all tasks, using the todo.txt syntax?
+        - For multi-user support, why not encode the data using the password as a salt?
+        - Edit *enitire* task as plain text, replacing the form with one-big-ass textarea for the user
+          to edit (ala Futon interface?) just as if editing "todo.txt"
+        - The DB name could be stored in a doc. On first-run (doc doesn't exist) we could show a form asking for values.
+          Anything that is currently hardcoded could be set as default, allowing new users to override values.
+
+    DONE:
+        @BUG: radio buttons value is not saved
+        @BUG: getcard-type is flawed, it always returns "dump"
+        - Accordion menu highlighting (what has focus, what is visible in Detail view) isn't clear
+        @BUG: Type is not save!? Radio button WTF?!
+        @BUG: The very first form isn't loaded (form loads, but without the data) === used a nasty hack (display:none;/.show())
+        @BUG: If you try to make a new card after an existing card has been selected, the Creation-Date is no longer available
+        @BUG  The indentation in the dropdown list is incorrect
+
+        @DONE: Implement a fix for the "can't nest optgroup bug" (http://stackoverflow.com/questions/1037732/nesting-optgroups-in-a-dropdownlist-select)
+        @DONE: Have buildMenu implement (an altered version?) of buildCardList()
+        @DONE: Mark type of card (T0d0/Note/Dump)
+        @DONE: DynaTree instead of accordion
+        @DONE: Use a different Couch for Data and App === Made Couch settable.
+        @DONE: We need a view in the Couch that returns all the context
+        @DONE: Show revision number
+
+        @DECIDE: Creation date vs. Modified date === Added a Creation date
